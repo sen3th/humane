@@ -118,4 +118,15 @@
   <input bind:value={currentPlayerId} placeholder="player id" />
   <input bind:value={messageText} placeholder="type a message" />
   <button on:click={sendMessage}>Send Message</button>
+
+  <h3>Players rn:</h3>
+  {#if players.length ===0}
+    <p>No players yet</p>
+    {:else}
+    <ul>
+      {#each players as p}
+        <li>{p.name} , id: {p.player_id} , bot: {p.is_bot}</li>
+      {/each}
+    </ul>
+  {/if}
 </main>
