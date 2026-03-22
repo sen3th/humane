@@ -32,7 +32,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/ping")
 def ping():
-    return {"message": "alive"}
+    return {"message": "alive and well!"}
 
 
 @app.post("/sessions", response_model=CreateSessionResponse)
