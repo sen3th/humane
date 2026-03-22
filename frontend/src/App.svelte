@@ -46,10 +46,48 @@
         }),
       });
       const data = await res.json();
+      currentPlayerId = data.player_id;
       playerName = "";
-      status = `${data.name} joined`;
+      players = [...players, data];
+      status = `${data.name} joined id ${data.player_id}`;
     }catch (err) {
       status = "can't join session";
+    }
+  }
+
+  async function sendMessage() {
+    if (!sessionId) {
+      status = "make a session first";
+      return;
+    }
+    if (!currentPlayerId){
+      status = "enter player id";
+      return;
+    }
+    if (!messageText) {
+      status = "enter a message";
+      return;
+    }
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/chat`, {
+        method:"POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          player_id: currentPlayerId,
+          message: messageText,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        status=data.detail || "chat Failed";
+        return;
+      }
+      status = `${data.name} says: ${data.message}`;
+      messageText = "";
+    } catch (err) {
+      status = "can't send message";
     }
   }
 
@@ -57,6 +95,10 @@
 
   let playerName = "";
   let isBot = false;
+
+  let messageText = "";
+  let currentPlayerId = "";
+  let players = [];
 </script>
 
 <main>
@@ -64,6 +106,7 @@
   <button on:click={checkBackend}>Check Backend</button>
   <p>Backend says: {status}</p>
   <p>Session ID: {sessionId}</p>
+  <p>Current Player ID: {currentPlayerId}</p>
   <button on:click={createSession}>make Session</button>
   <input bind:value={playerName} placeholder="Player Name" />
   <label>
@@ -71,4 +114,8 @@
     Is Bot
   </label>
   <button on:click={joinPlayer}>Join</button>
+  <hr />
+  <input bind:value={currentPlayerId} placeholder="player id" />
+  <input bind:value={messageText} placeholder="type a message" />
+  <button on:click={sendMessage}>Send Message</button>
 </main>
