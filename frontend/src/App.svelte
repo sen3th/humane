@@ -142,6 +142,11 @@
 
   }
 
+  function getPlayerNameById(id){
+    const p = players.find((x) => x.player_id === id);
+    return p ? p.name :id;
+  }
+
   let sessionId ="";
 
   let playerName = "";
@@ -202,7 +207,7 @@
     {#if revealData && Object.keys(revealData.vote_tally || {}).length > 0}
       <ul>
         {#each Object.entries(revealData.vote_tally) as [playerId, count]}
-         <li>{playerId}: {count}</li>
+         <li>{getPlayerNameById(playerId)}: {count}</li>
         {/each}
       </ul>
       {:else}
