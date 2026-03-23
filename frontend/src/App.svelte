@@ -122,6 +122,26 @@
     }
   }
 
+  async function revealResult(){
+    if (!sessionId){
+      status = "make a session first";
+      return;
+    }
+    try{
+      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/reveal`);
+      const data = await res.json();
+      if (!res.ok) {
+        status = data.detail || "reveal Failed";
+        return;
+    }
+      revealData =  data;
+      status = "Reveal ready";
+    }catch (err) {
+      status = "can't reveal result";
+    }
+
+  }
+
   let sessionId ="";
 
   let playerName = "";
@@ -133,6 +153,8 @@
   
   let voterId = "";
   let suspectId = "";
+
+  let revealData=null;
 </script>
 
 <main>
@@ -168,4 +190,13 @@
   <input bind:value={voterId} placeholder="voter id"/>
   <input bind:value={suspectId} placeholder="suspect id"/>
   <button on:click={submitVote}>Submit Vote</button>
-</main>
+  <hr />
+  <h3>Reveal</h3>
+  <button on:click={revealResult}>Reveal Result</button>
+  {#if revealData}
+    <p>Human player was: {revealData.human_player
+      ? `${revealData.human_player.name} (id: ${revealData.human_player.player_id})` : "none"}
+    </p>
+    <p>Most voted: {revealData.most_voted_id}</p>
+  {/if}
+  </main>
