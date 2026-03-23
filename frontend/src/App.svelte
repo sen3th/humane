@@ -186,7 +186,9 @@
     {:else}
     <ul>
       {#each players as p}
-        <li>{p.name} , id: {p.player_id} , bot: {p.is_bot}</li>
+        <li on:click={()=> (voterId = p.player_id)} style="cursor: pointer;">
+          {p.name} , id: {p.player_id} , bot: {p.is_bot}
+        </li>
       {/each}
     </ul>
   {/if}
