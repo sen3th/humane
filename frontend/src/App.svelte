@@ -198,5 +198,15 @@
       ? `${revealData.human_player.name} (id: ${revealData.human_player.player_id})` : "none"}
     </p>
     <p>Most voted: {revealData.most_voted_id}</p>
+    <h4>Vote tally</h4>
+    {#if revealData && Object.keys(revealData.vote_tally || {}).length > 0}
+      <ul>
+        {#each Object.entries(revealData.vote_tally) as [playerId, count]}
+         <li>{playerId}: {count}</li>
+        {/each}
+      </ul>
+      {:else}
+        <p>No votes</p>
+      {/if}
   {/if}
   </main>
