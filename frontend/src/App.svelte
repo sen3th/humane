@@ -91,6 +91,37 @@
     }
   }
 
+  async function submitVote(){
+    if (!sessionId){
+      status = "make a session first";
+      return;
+    }
+    if (!voterId || !suspectId) {
+      status = "enter voter and suspect ids";
+      return;
+    }
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/vote`,{
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          voter_id: voterId,
+          suspect_id: suspectId,
+        }),
+      });
+      const data=await res.json();
+      if (!res.ok) {
+        status = data.detail || "vote Failed";
+        return;
+      }
+      status = "vote submitted";
+    } catch (err) {
+      status = "can't submit vote";
+    }
+  }
+
   let sessionId ="";
 
   let playerName = "";
@@ -99,6 +130,9 @@
   let messageText = "";
   let currentPlayerId = "";
   let players = [];
+  
+  let voterId = "";
+  let suspectId = "";
 </script>
 
 <main>
@@ -129,4 +163,9 @@
       {/each}
     </ul>
   {/if}
+  <hr />
+  <h3>Vote</h3>
+  <input bind:value={voterId} placeholder="voter id"/>
+  <input bind:value={suspectId} placeholder="suspect id"/>
+  <button on:click={submitVote}>Submit Vote</button>
 </main>
