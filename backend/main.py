@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from typing import Dict
 from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import httpx
 
 app = FastAPI()
 app.add_middleware(
@@ -29,6 +31,40 @@ class ChatRequest(BaseModel):
     player_id: str
     message: str
 
+class BotTestRequest(BaseModel):
+    message: str
+
+async def get_bot_reply(user_text: str) -> str:
+    api_key = os.getenv("HACKCLUB_API_KEY")
+    if not api_key:
+        return "bot is missing api key"
+    
+    url="https://ai.hackclub.com/proxy/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "qwen/qwen3-32b",
+        "messages": [
+            {"role": "system", "content": "you're a short talking and causal game participant in a game where you try to find the human player alongside with your other fellow bots and eliminate the human"},
+            {"role":"user","content": user_text},
+        ],
+    }
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            res = await client.post(url, headers=headers, json=payload)
+            data= res.json()
+            if not res.is_success:
+                return "bot errr api"
+            return data["choices"][0]["message"]["content"]
+    except Exception:
+        return "bot error"
+
+@app.post("/bot-test")
+async def bot_test(body: BotTestRequest):
+    reply = await get_bot_reply(body.message)
+    return {"reply": reply}
 
 @app.get("/ping")
 def ping():
@@ -62,7 +98,7 @@ def join_session(session_id: str, body: JoinRequest):
 
 
 @app.post("/sessions/{session_id}/chat")
-def send_chat(session_id: str, body: ChatRequest):
+async def send_chat(session_id: str, body: ChatRequest):
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
 
@@ -77,6 +113,15 @@ def send_chat(session_id: str, body: ChatRequest):
         "message": body.message,
     }
     sessions[session_id]["messages"].append(msg)
+    bots = [p for p in players if p["is_bot"] and p["player_id"] != body.player_id]
+    for bot in bots:
+        bot_reply =await get_bot_reply(body.message)
+        bot_msg ={
+            "player_id": bot["player_id"],
+            "name": bot["name"],
+            "message": bot_reply,
+        }
+        sessions[session_id]["messages"].append(bot_msg)
     return msg
 class VoteRequest(BaseModel):
     voter_id: str
