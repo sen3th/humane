@@ -84,6 +84,7 @@
         status=data.detail || "chat Failed";
         return;
       }
+      chatlog = [...chatlog, data];
       status = `${data.name} says: ${data.message}`;
       messageText = "";
     } catch (err) {
@@ -160,6 +161,7 @@
   let suspectId = "";
 
   let revealData=null;
+  let chatlog = [];
 </script>
 
 <main>
@@ -179,6 +181,16 @@
   <input bind:value={currentPlayerId} placeholder="player id" />
   <input bind:value={messageText} placeholder="type a message" />
   <button on:click={sendMessage}>Send Message</button>
+  <h3>Chatlog</h3>
+  {#if chatlog.length ===0}
+    <p>no messages Yet</p>
+    {:else}
+      <ul>
+        {#each chatlog as m}
+          <li>{m.name}: {m.message}</li>
+        {/each}
+      </ul>
+  {/if}
 
   <h3>Players rn:</h3>
   {#if players.length ===0}
