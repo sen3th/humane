@@ -12,12 +12,32 @@
   }
 
   async function createSession() {
+    if (!humanName){
+      status = "enter human player name first";
+      return;
+    }
     try {
       const res = await fetch("http://127.0.0.1:8000/sessions",{
         method : "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          human_name: humanName,
+          bot_count: 3
+        }),
       });
       const data = await res.json();
+      if (!res.ok){
+        status = data.detail || "cant create session";
+        return;
+      }
       sessionId = data.session_id;
+      players = data.players || [];
+
+      const human = players.find((p) => !p.is_bot);
+      currentPlayerId = human ? human.player_id : "";
+      if (botTickTimer) clearInterval(botTickTimer);
+      botTickTimer = setInterval(botTick, 10000);
+      status = `Session created . id ${sessionId}`;
       
     }catch (err) {
       sessionId = "can't create session";
@@ -143,6 +163,20 @@
 
   }
 
+  async function botTick(){ 
+    if (!sessionId) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/bot-tick`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok && data.ok && data.message){
+        chatlog = [...chatlog, data.message];
+      }
+    } catch (err) {
+    }
+  }
+
   function getPlayerNameById(id){
     const p = players.find((x) => x.player_id === id);
     return p ? p.name :id;
@@ -162,6 +196,9 @@
 
   let revealData=null;
   let chatlog = [];
+
+  let humanName = "";
+  let botTickTimer = null;
 </script>
 
 <main>
@@ -170,6 +207,7 @@
   <p>Backend says: {status}</p>
   <p>Session ID: {sessionId}</p>
   <p>Current Player ID: {currentPlayerId}</p>
+  <input bind:value={humanName} placeholder="enter your name"/>
   <button on:click={createSession}>make Session</button>
   <input bind:value={playerName} placeholder="Player Name" />
   <label>

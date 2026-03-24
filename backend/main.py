@@ -5,6 +5,7 @@ from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import httpx
+from typing import List
 
 app = FastAPI()
 app.add_middleware(
@@ -17,9 +18,13 @@ app.add_middleware(
 
 sessions: Dict[str, dict] = {}
 
+class CreateSessionRequest(BaseModel):
+    human_name: str
+    bot_count: int = 3
 
 class CreateSessionResponse(BaseModel):
     session_id: str
+    players: list
 
 
 class JoinRequest(BaseModel):
@@ -33,6 +38,10 @@ class ChatRequest(BaseModel):
 
 class BotTestRequest(BaseModel):
     message: str
+
+class BotTickResponse(BaseModel):
+    ok: bool
+    message: dict | None = None
 
 async def get_bot_reply(user_text: str) -> str:
     api_key = os.getenv("HACKCLUB_API_KEY")
@@ -61,7 +70,7 @@ async def get_bot_reply(user_text: str) -> str:
     except Exception:
         return "bot error"
 
-@app.post("/bot-test")
+@app.post("/bot-test") 
 async def bot_test(body: BotTestRequest):
     reply = await get_bot_reply(body.message)
     return {"reply": reply}
@@ -70,17 +79,58 @@ async def bot_test(body: BotTestRequest):
 def ping():
     return {"message": "alive and well!"}
 
+@app.post("/sessions/{session_id}/bot-tick", response_model=BotTickResponse)
+async def bot_tick(session_id: str):
+    if session_id not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    players=sessions[session_id]["players"]
+    bots = [p for p in players if p["is_bot"]]
+    if not bots:
+        return {"ok":False, "message": None}
+    
+    bot = bots[0]
+
+    latest = sessions[session_id]["messages"][-1]["message"] if sessions[session_id]["messages"] else "Type a message first"
+    bot_reply = await get_bot_reply(latest)
+
+    bot_msg = {
+        "player_id": bot["player_id"],
+        "name": bot["name"],
+        "message": bot_reply,
+    }
+    sessions[session_id]["messages"].append(bot_msg)
+    return {"ok": True, "message": bot_msg}
 
 @app.post("/sessions", response_model=CreateSessionResponse)
-def create_session():
+def create_session(body: CreateSessionRequest):
     session_id = str(uuid4())
-    sessions[session_id] = {
-        "players": [],
-        "messages": [],
-        "votes": {}
-    }
-    return {"session_id": session_id}
+    players = []
 
+    human_player = {
+        "player_id": str(uuid4()),
+        "name": body.human_name,
+        "is_bot": False
+    }
+    players.append(human_player)
+
+    bot_names = ["Tom", "Lily", "James", "Emma", "Teddy"]
+    count = max(1, min(body.bot_count, 5))
+    for i in range (count):
+        players.append({
+            "player_id": str(uuid4()),
+            "name": bot_names[i % len(bot_names)],
+            "is_bot": True
+        })
+    sessions[session_id] = {
+            "players": players,
+            "messages": [],
+            "votes": {}
+        }
+    return{
+            "session_id": session_id,
+            "players": players
+        }
 
 @app.post("/sessions/{session_id}/join")
 def join_session(session_id: str, body: JoinRequest):
