@@ -36,7 +36,12 @@
       const human = players.find((p) => !p.is_bot);
       currentPlayerId = human ? human.player_id : "";
       if (botTickTimer) clearInterval(botTickTimer);
-      botTickTimer = setInterval(botTick, 10000);
+      botTickTimer = setInterval(botTick, 3000);
+
+      if (phaseTimer) clearInterval(phaseTimer);
+      phaseTimer = setInterval(loadGamesState, 1000);
+      loadGamesState();
+
       status = `Session created . id ${sessionId}`;
       
     }catch (err) {
@@ -106,7 +111,8 @@
       }
       chatlog = [...chatlog, data];
       status = `${data.name} says: ${data.message}`;
-      messageText = "";
+      botTick();
+      status = `${data.name} says: ${data.message}`;
     } catch (err) {
       status = "can't send message";
     }
@@ -177,6 +183,20 @@
     }
   }
 
+  async function loadGamesState(){
+    if (!sessionId) return;
+    try{
+      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/state`);
+      const data = await res.json();
+      if (res.ok){
+        gamePhase = data.phase;
+        countdownSeconds = data.chat_seconds_left;
+      }
+    }catch (err) {
+    }
+    
+  }
+  
   function getPlayerNameById(id){
     const p = players.find((x) => x.player_id === id);
     return p ? p.name :id;
@@ -199,11 +219,16 @@
 
   let humanName = "";
   let botTickTimer = null;
+
+  let gamePhase = "chat"
+  let countdownSeconds = 0;
+  let phaseTimer = null;
 </script>
 
 <main>
   <h1>Humane :)</h1>
   <button on:click={checkBackend}>Check Backend</button>
+  <p>Phase: {gamePhase}, time Left: {countdownSeconds}</p>
   <p>Backend says: {status}</p>
   <p>Session ID: {sessionId}</p>
   <p>Current Player ID: {currentPlayerId}</p>
@@ -218,7 +243,7 @@
   <hr />
   <input bind:value={currentPlayerId} placeholder="player id" />
   <input bind:value={messageText} placeholder="type a message" />
-  <button on:click={sendMessage}>Send Message</button>
+  <button on:click={sendMessage} disabled={gamePhase !== "chat"}>Send Message</button>
   <h3>Chatlog</h3>
   {#if chatlog.length ===0}
     <p>no messages Yet</p>
@@ -246,7 +271,7 @@
   <h3>Vote</h3>
   <input bind:value={voterId} placeholder="voter id"/>
   <input bind:value={suspectId} placeholder="suspect id"/>
-  <button on:click={submitVote}>Submit Vote</button>
+  <button on:click={submitVote} disabled={gamePhase !== "voting"}>Submit Vote</button>
   <hr />
   <h3>Reveal</h3>
   <button on:click={revealResult}>Reveal Result</button>

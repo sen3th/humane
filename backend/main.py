@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import httpx
 from typing import List
+import time
 
 app = FastAPI()
 app.add_middleware(
@@ -21,10 +22,13 @@ sessions: Dict[str, dict] = {}
 class CreateSessionRequest(BaseModel):
     human_name: str
     bot_count: int = 3
+    chat_duration_seconds: int = 60
 
 class CreateSessionResponse(BaseModel):
     session_id: str
     players: list
+    phase: str
+    chat_seconds_left: int
 
 
 class JoinRequest(BaseModel):
@@ -43,6 +47,12 @@ class BotTickResponse(BaseModel):
     ok: bool
     message: dict | None = None
 
+def refresh_session_phase(session: dict) -> None:
+    if session["phase"] == "chat" and time.time() >= session.get("chat_ends_at", 0):
+        session["phase"] = "voting"
+def chat_seconds_left(session:dict)->int:
+    return max(0, int(session.get("chat_ends_at", 0) - time.time()))
+
 async def get_bot_reply(user_text: str) -> str:
     api_key = os.getenv("HACKCLUB_API_KEY")
     if not api_key:
@@ -56,7 +66,7 @@ async def get_bot_reply(user_text: str) -> str:
     payload = {
         "model": "qwen/qwen3-32b",
         "messages": [
-            {"role": "system", "content": "you're a short talking and causal game participant in a game where you try to find the human player alongside with your other fellow bots and eliminate the human"},
+            {"role": "system", "content": "You are a bot in a social deduction game chat. Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human."},
             {"role":"user","content": user_text},
         ],
     }
@@ -80,16 +90,23 @@ def ping():
     return {"message": "alive and well!"}
 
 @app.post("/sessions/{session_id}/bot-tick", response_model=BotTickResponse)
-async def bot_tick(session_id: str):
+async def bot_tick(session_id: str): 
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = sessions[session_id]
+    refresh_session_phase(session)
+    if session.get("phase") != "chat":
+        return {"ok": False, "message": None}
     
     players=sessions[session_id]["players"]
     bots = [p for p in players if p["is_bot"]]
     if not bots:
         return {"ok":False, "message": None}
     
-    bot = bots[0]
+    idx = sessions[session_id].get("next_bot_index", 0) % len(bots)
+    bot = bots[idx]
+    sessions[session_id]["next_bot_index"] = (idx + 1) % len(bots)
 
     latest = sessions[session_id]["messages"][-1]["message"] if sessions[session_id]["messages"] else "Type a message first"
     bot_reply = await get_bot_reply(latest)
@@ -106,6 +123,7 @@ async def bot_tick(session_id: str):
 def create_session(body: CreateSessionRequest):
     session_id = str(uuid4())
     players = []
+    duration = max(15, min(body.chat_duration_seconds, 600))
 
     human_player = {
         "player_id": str(uuid4()),
@@ -123,13 +141,18 @@ def create_session(body: CreateSessionRequest):
             "is_bot": True
         })
     sessions[session_id] = {
+            "next_bot_index": 0,
             "players": players,
             "messages": [],
-            "votes": {}
+            "votes": {},
+            "phase":"chat",
+            "chat_ends_at": time.time()+duration
         }
     return{
             "session_id": session_id,
-            "players": players
+            "players": players,
+            "phase": "chat",
+            "chat_seconds_left": duration
         }
 
 @app.post("/sessions/{session_id}/join")
@@ -151,6 +174,11 @@ def join_session(session_id: str, body: JoinRequest):
 async def send_chat(session_id: str, body: ChatRequest):
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    session=sessions[session_id]
+    refresh_session_phase(session)
+    if session.get("phase") != "chat":
+        raise HTTPException(status_code= 400, detail="voting in progress, chat closed")
 
     players = sessions[session_id]["players"]
     sender = next((p for p in players if p["player_id"] == body.player_id), None)
@@ -163,15 +191,6 @@ async def send_chat(session_id: str, body: ChatRequest):
         "message": body.message,
     }
     sessions[session_id]["messages"].append(msg)
-    bots = [p for p in players if p["is_bot"] and p["player_id"] != body.player_id]
-    for bot in bots:
-        bot_reply =await get_bot_reply(body.message)
-        bot_msg ={
-            "player_id": bot["player_id"],
-            "name": bot["name"],
-            "message": bot_reply,
-        }
-        sessions[session_id]["messages"].append(bot_msg)
     return msg
 class VoteRequest(BaseModel):
     voter_id: str
@@ -181,6 +200,12 @@ class VoteRequest(BaseModel):
 def submit_vote(session_id: str, body: VoteRequest):
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = sessions[session_id]
+    refresh_session_phase(session)
+    if session.get("phase") != "voting":
+        raise HTTPException(status_code=400, detail="Voting hasn't started yet")
+
     players=sessions[session_id]["players"]
     player_ids={p["player_id"] for p in players}
     if body.voter_id not in player_ids:
@@ -213,3 +238,13 @@ def reveal(session_id: str):
         "all_messages": data["messages"]
     }
     
+@app.get("/sessions/{session_id}/state")
+def session_state(session_id: str):
+    if session_id not in sessions:
+        raise HTTPException(status_code = 404, detail="Session not found")
+    session = sessions[session_id]
+    refresh_session_phase(session)
+    return {
+        "phase": session["phase"],
+        "chat_seconds_left": chat_seconds_left(session),
+    }
