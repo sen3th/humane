@@ -50,36 +50,6 @@
     
   }
 
-  async function joinPlayer(){
-    if (!sessionId) {
-      alert("make a session first");
-      return;
-    }
-    if (!playerName) {
-      alert("enter player name");
-      return;
-    }
-    try{
-      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/join`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: playerName,
-          is_bot: isBot,
-        }),
-      });
-      const data = await res.json();
-      currentPlayerId = data.player_id;
-      playerName = "";
-      players = [...players, data];
-      status = `${data.name} joined id ${data.player_id}`;
-    }catch (err) {
-      status = "can't join session";
-    }
-  }
-
   async function sendMessage() {
     if (!sessionId) {
       status = "make a session first";
@@ -123,7 +93,7 @@
       status = "make a session first";
       return;
     }
-    if (!voterId || !suspectId) {
+    if (!VoterId || !suspectId) {
       status = "enter voter and suspect ids";
       return;
     }
@@ -134,7 +104,7 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          voter_id: voterId,
+          voter_id: VoterId,
           suspect_id: suspectId,
         }),
       });
@@ -211,15 +181,8 @@
 
   let sessionId ="";
 
-  let playerName = "";
-  let isBot = false;
-
   let messageText = "";
-  let currentPlayerId = "";
   let players = [];
-  
-  let voterId = "";
-  let suspectId = "";
 
   let revealData=null;
   let chatlog = [];
@@ -230,25 +193,18 @@
   let gamePhase = "chat"
   let countdownSeconds = 0;
   let phaseTimer = null;
+
+  let currentPlayerId = "";
+  let VoterId = "";
+  let suspectId = "";
 </script>
 
 <main>
   <h1>Humane :)</h1>
-  <button on:click={checkBackend}>Check Backend</button>
   <p>Phase: {gamePhase}, time Left: {countdownSeconds}</p>
-  <p>Backend says: {status}</p>
-  <p>Session ID: {sessionId}</p>
-  <p>Current Player ID: {currentPlayerId}</p>
   <input bind:value={humanName} placeholder="enter your name"/>
   <button on:click={createSession}>make Session</button>
-  <input bind:value={playerName} placeholder="Player Name" />
-  <label>
-    <input type="checkbox" bind:checked={isBot} />
-    Is Bot
-  </label>
-  <button on:click={joinPlayer}>Join</button>
   <hr />
-  <input bind:value={currentPlayerId} placeholder="player id" />
   <input bind:value={messageText} placeholder="type a message" />
   <button on:click={sendMessage} disabled={gamePhase !== "chat"}>Send Message</button>
   <h3>Chatlog</h3>
@@ -268,7 +224,7 @@
     {:else}
     <ul>
       {#each players as p}
-        <li on:click={()=> (voterId = p.player_id)} style="cursor: pointer;">
+        <li on:click={()=> (VoterId = p.player_id)} style="cursor: pointer;">
           {p.name} , id: {p.player_id} , bot: {p.is_bot}
         </li>
       {/each}
@@ -276,8 +232,6 @@
   {/if}
   <hr />
   <h3>Vote</h3>
-  <input bind:value={voterId} placeholder="voter id"/>
-  <input bind:value={suspectId} placeholder="suspect id"/>
   <button on:click={submitVote} disabled={gamePhase !== "voting"}>Submit Vote</button>
   <hr />
   <h3>Reveal</h3>
