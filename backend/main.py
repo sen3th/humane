@@ -67,7 +67,7 @@ def cast_bot_votes(session:dict) -> None:
         if not options:
             continue
         votes[bot_id] = random.choice(options)
-async def get_bot_reply(user_text: str) -> str:
+async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral") -> str:
     api_key = os.getenv("HACKCLUB_API_KEY")
     if not api_key:
         return "bot is missing api key"
@@ -80,7 +80,7 @@ async def get_bot_reply(user_text: str) -> str:
     payload = {
         "model": "qwen/qwen3-32b",
         "messages": [
-            {"role": "system", "content": "You are a bot in a social deduction game chat. Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human."},
+            {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human."},
             {"role":"user","content": user_text},
         ],
     }
@@ -96,7 +96,7 @@ async def get_bot_reply(user_text: str) -> str:
 
 @app.post("/bot-test") 
 async def bot_test(body: BotTestRequest):
-    reply = await get_bot_reply(body.message)
+    reply = await get_bot_reply(body.message, bot_name="TestBot", bot_style="neutral")
     return {"reply": reply}
 
 @app.get("/ping")
@@ -123,7 +123,11 @@ async def bot_tick(session_id: str):
     sessions[session_id]["next_bot_index"] = (idx + 1) % len(bots)
 
     latest = sessions[session_id]["messages"][-1]["message"] if sessions[session_id]["messages"] else "Type a message first"
-    bot_reply = await get_bot_reply(latest)
+    bot_reply = await get_bot_reply(
+        latest,
+        bot_name=bot["name"],
+        bot_style=bot.get("style", "neutral"),
+    )
 
     bot_msg = {
         "player_id": bot["player_id"],
@@ -147,12 +151,14 @@ def create_session(body: CreateSessionRequest):
     players.append(human_player)
 
     bot_names = ["Tom", "Lily", "James", "Emma", "Teddy"]
+    bot_styles = ["cautious", "bold", "logical", "quiet", "aggressive"]
     count = max(1, min(body.bot_count, 5))
     for i in range (count):
         players.append({
             "player_id": str(uuid4()),
             "name": bot_names[i % len(bot_names)],
-            "is_bot": True
+            "is_bot": True,
+            "style": bot_styles[i % len(bot_styles)],
         })
     sessions[session_id] = {
             "next_bot_index": 0,
