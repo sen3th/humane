@@ -240,7 +240,7 @@ def submit_vote(session_id: str, body: VoteRequest):
     if body.voter_id not in player_ids:
         raise HTTPException(status_code=404, detail="Voter not found")
     if body.suspect_id not in player_ids:
-        raise HTTPException(status_code=404, detail="Suspect not found")
+        raise HTTPException(status_code=404, detail="Suspect not found") 
     
     sessions[session_id]["votes"][body.voter_id] = body.suspect_id
     return{"ok": True}
@@ -254,16 +254,25 @@ def reveal(session_id: str):
     votes = data["votes"]
     humans = [p for p in players if not p["is_bot"]]
     human_player=humans[0] if humans else None
+    human_id = human_player["player_id"] if human_player else None
 
     tally = {}
     for suspect_id in votes.values():
         tally[suspect_id] = tally.get(suspect_id, 0) + 1
     most_voted_id = max(tally, key=tally.get) if tally else None
 
+    if most_voted_id is None:
+        playerOutcome = "unknown"
+    elif human_id is not None and most_voted_id == human_id:
+        playerOutcome= "lose"
+    else:
+        playerOutcome = "win"
+
     return {
         "human_player": human_player,
         "vote_tally": tally,
         "most_voted_id": most_voted_id,
+        "playerOutcome": playerOutcome,
         "all_messages": data["messages"]
     }
     

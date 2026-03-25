@@ -162,6 +162,13 @@
         return;
     }
       revealData =  data;
+      if (data.playerOutcome === "win"){
+        alert("you win :), bots failed to vote you");
+      } else if (data.playerOutcome === "lose"){
+        alert("you lose, bots voted you out");
+      } else{
+        alert("nothing yet")
+      }
       status = "Reveal ready";
     }catch (err) {
       status = "can't reveal result";
