@@ -77,10 +77,19 @@ async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
+    style_hints = {
+        "cautious": "Speak carefully, hedge claims, ask for more proof.",
+        "bold": "Make confident accusations and push quick votes.",
+        "logical": "Focus on contradictions and evidence.",
+        "quiet": "Use brief, minimal words and fewer claims.",
+        "aggressive": "Pressure others and demand immediate action.",
+    }
+    style_hint = style_hints.get(bot_style, "Speak neutral and concise.")
+
     payload = {
         "model": "qwen/qwen3-32b",
         "messages": [
-            {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human."},
+            {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. {style_hint} Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human."},
             {"role":"user","content": user_text},
         ],
     }
