@@ -7,6 +7,7 @@ import os
 import httpx
 from typing import List
 import time
+import random
 
 app = FastAPI()
 app.add_middleware(
@@ -50,9 +51,22 @@ class BotTickResponse(BaseModel):
 def refresh_session_phase(session: dict) -> None:
     if session["phase"] == "chat" and time.time() >= session.get("chat_ends_at", 0):
         session["phase"] = "voting"
+        cast_bot_votes(session)
 def chat_seconds_left(session:dict)->int:
     return max(0, int(session.get("chat_ends_at", 0) - time.time()))
-
+def cast_bot_votes(session:dict) -> None:
+    players = session["players"]
+    votes = session["votes"]
+    bots = [p for p in players if p["is_bot"]]
+    all_player_ids = [p["player_id"] for p in players]
+    for bot in bots:
+        bot_id = bot["player_id"]
+        if bot_id in votes:
+            continue
+        options = [pid for pid in all_player_ids if pid!= bot_id]
+        if not options:
+            continue
+        votes[bot_id] = random.choice(options)
 async def get_bot_reply(user_text: str) -> str:
     api_key = os.getenv("HACKCLUB_API_KEY")
     if not api_key:
