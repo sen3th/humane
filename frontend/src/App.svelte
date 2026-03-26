@@ -1,5 +1,6 @@
 <script>
   let status = "Not checked yet";
+  const APP_STATE_KEY = "humane_state";
 
   async function checkBackend() {
     try {
@@ -16,6 +17,7 @@
       status = "enter human player name first";
       return;
     }
+    clearUiState();
     try {
       const res = await fetch("http://127.0.0.1:8000/sessions",{
         method : "POST",
@@ -28,6 +30,7 @@
       const data = await res.json();
       if (!res.ok){
         status = data.detail || "cant create session";
+        saveUiState();
         return;
       }
       sessionId = data.session_id;
@@ -81,6 +84,7 @@
       }
       chatlog = [...chatlog, data];
       status = `${data.name} says: ${data.message}`;
+      saveUiState();
       botTick();
       status = `${data.name} says: ${data.message}`;
     } catch (err) {
@@ -119,6 +123,7 @@
       }
       status = "vote submitted";
       suspectId = "";
+      saveUiState();
     } catch (err) {
       status = "can't submit vote";
     }
@@ -145,13 +150,14 @@
         alert("nothing yet")
       }
       status = "Reveal ready";
+      saveUiState();
     }catch (err) {
       status = "can't reveal result";
     }
 
   }
 
-  async function botTick(){ 
+  async function botTick(){
     if (!sessionId) return;
     try {
       const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/bot-tick`, {
@@ -160,6 +166,7 @@
       const data = await res.json();
       if (res.ok && data.ok && data.message){
         chatlog = [...chatlog, data.message];
+        saveUiState();
       }
     } catch (err) {
     }
@@ -173,6 +180,7 @@
       if (res.ok){
         gamePhase = data.phase;
         countdownSeconds = data.chat_seconds_left;
+        saveUiState();
       }
     }catch (err) {
     }
@@ -182,6 +190,44 @@
   function getPlayerNameById(id){
     const p = players.find((x) => x.player_id === id);
     return p ? p.name: id;
+  }
+
+  function saveUiState(){
+    const data = {
+      sessionId,
+      currentPlayerId,
+      humanName,
+      players,
+      chatlog,
+      gamePhase,
+      countdownSeconds,
+      suspectId,
+      revealData
+    };
+    localStorage.setItem(APP_STATE_KEY, JSON.stringify(data));
+  }
+
+  function restoreUiState(){
+    const raw = localStorage.getItem(APP_STATE_KEY);
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw);
+      sessionId = data.sessionId || "";
+      currentPlayerId = data.currentPlayerId || "";
+      humanName = data.humanName || "";
+      players = data.players || [];
+      chatlog = data.chatlog || [];
+      gamePhase = data.gamePhase || "chat";
+      countdownSeconds = data.countdownSeconds || 0;
+      suspectId = data.suspectId || "";
+      revealData = data.revealData || null;
+    } catch (err) {
+      localStorage.removeItem(APP_STATE_KEY);
+    }
+  }
+
+  function clearUiState(){
+    localStorage.removeItem(APP_STATE_KEY);
   }
 
   let sessionId ="";
@@ -201,6 +247,16 @@
 
   let currentPlayerId = "";
   let suspectId = "";
+
+  restoreUiState();
+  if (sessionId){
+    if (botTickTimer) clearInterval(botTickTimer);
+    botTickTimer = setInterval(botTick, 3000);
+
+    if (phaseTimer) clearInterval(phaseTimer);
+    phaseTimer = setInterval(loadGamesState, 1000);
+    loadGamesState();
+  }
 </script>
 
 <main>
@@ -229,7 +285,7 @@
     <ul>
       {#each players as p}
         <li>
-         <button type="button" on:click={()=> (suspectId = p.player_id)} style="cursor: pointer;">
+         <button type="button" on:click={()=> {suspectId = p.player_id; saveUiState(); }} style="cursor: pointer;">
           {p.name} , id: {p.player_id} , bot: {p.is_bot}
          </button>
         </li>
