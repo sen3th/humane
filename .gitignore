@@ -11,3 +11,5 @@ Thumbs.db
 
 .env
 backend/.env
+
+humane.db

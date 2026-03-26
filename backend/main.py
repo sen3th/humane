@@ -8,6 +8,8 @@ import httpx
 from typing import List
 import time
 import random
+import sqlite3
+import json
 
 app = FastAPI()
 app.add_middleware(
@@ -18,7 +20,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+def save_session(session_id: str):
+    conn =  sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT OR REPLACE INTO sessions (session_id, data) VALUES (?, ?)",
+        (session_id, json.dumps(sessions[session_id])),
+    )
+    conn.commit()
+    conn.close()
+
+def load_all_sessions():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("SELECT session_id, data FROM sessions")
+    rows = cur.fetchall()
+    conn.close()
+    for session_id, data_json in rows:
+        sessions[session_id] = json.loads(data_json)
+
 sessions: Dict[str, dict] = {}
+
+DB_PATH = "humane.db"
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute("""
+                CREATE TABLE IF NOT EXISTS sessions(
+                session_id TEXT PRIMARY KEY,
+                data TEXT NOT NULL
+                )
+                """)
+    conn.commit()
+    conn.close()
+init_db()
+load_all_sessions()
 
 class CreateSessionRequest(BaseModel):
     human_name: str
@@ -48,10 +84,12 @@ class BotTickResponse(BaseModel):
     ok: bool
     message: dict | None = None
 
-def refresh_session_phase(session: dict) -> None:
+def refresh_session_phase(session_id: str) -> None:
+    session = sessions[session_id]
     if session["phase"] == "chat" and time.time() >= session.get("chat_ends_at", 0):
         session["phase"] = "voting"
         cast_bot_votes(session)
+        save_session(session_id)
 def chat_seconds_left(session:dict)->int:
     return max(0, int(session.get("chat_ends_at", 0) - time.time()))
 def cast_bot_votes(session:dict) -> None:
@@ -118,7 +156,7 @@ async def bot_tick(session_id: str):
         raise HTTPException(status_code=404, detail="Session not found")
     
     session = sessions[session_id]
-    refresh_session_phase(session)
+    refresh_session_phase(session_id)
     if session.get("phase") != "chat":
         return {"ok": False, "message": None}
     
@@ -144,6 +182,7 @@ async def bot_tick(session_id: str):
         "message": bot_reply,
     }
     sessions[session_id]["messages"].append(bot_msg)
+    save_session(session_id)
     return {"ok": True, "message": bot_msg}
 
 @app.post("/sessions", response_model=CreateSessionResponse)
@@ -177,6 +216,7 @@ def create_session(body: CreateSessionRequest):
             "phase":"chat",
             "chat_ends_at": time.time()+duration
         }
+    save_session(session_id)
     return{
             "session_id": session_id,
             "players": players,
@@ -196,6 +236,7 @@ def join_session(session_id: str, body: JoinRequest):
         "is_bot": body.is_bot,
     }
     sessions[session_id]["players"].append(player)
+    save_session(session_id)
     return player
 
 
@@ -205,7 +246,7 @@ async def send_chat(session_id: str, body: ChatRequest):
         raise HTTPException(status_code=404, detail="Session not found")
     
     session=sessions[session_id]
-    refresh_session_phase(session)
+    refresh_session_phase(session_id)
     if session.get("phase") != "chat":
         raise HTTPException(status_code= 400, detail="voting in progress, chat closed")
 
@@ -220,6 +261,7 @@ async def send_chat(session_id: str, body: ChatRequest):
         "message": body.message,
     }
     sessions[session_id]["messages"].append(msg)
+    save_session(session_id)
     return msg
 class VoteRequest(BaseModel):
     voter_id: str
@@ -231,7 +273,7 @@ def submit_vote(session_id: str, body: VoteRequest):
         raise HTTPException(status_code=404, detail="Session not found")
     
     session = sessions[session_id]
-    refresh_session_phase(session)
+    refresh_session_phase(session_id)
     if session.get("phase") != "voting":
         raise HTTPException(status_code=400, detail="Voting hasn't started yet")
 
@@ -243,6 +285,7 @@ def submit_vote(session_id: str, body: VoteRequest):
         raise HTTPException(status_code=404, detail="Suspect not found") 
     
     sessions[session_id]["votes"][body.voter_id] = body.suspect_id
+    save_session(session_id)
     return{"ok": True}
 
 @app.get("/sessions/{session_id}/reveal")
@@ -281,7 +324,7 @@ def session_state(session_id: str):
     if session_id not in sessions:
         raise HTTPException(status_code = 404, detail="Session not found")
     session = sessions[session_id]
-    refresh_session_phase(session)
+    refresh_session_phase(session_id)
     return {
         "phase": session["phase"],
         "chat_seconds_left": chat_seconds_left(session),
