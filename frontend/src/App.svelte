@@ -93,8 +93,12 @@
       status = "make a session first";
       return;
     }
-    if (!VoterId || !suspectId) {
-      status = "enter voter and suspect ids";
+    if (!currentPlayerId){
+      status = "no player id found"
+      return;
+    }
+    if (!suspectId){
+      status = "Pick a suspect fist!"
       return;
     }
     try {
@@ -104,7 +108,7 @@
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          voter_id: VoterId,
+          voter_id: currentPlayerId,
           suspect_id: suspectId,
         }),
       });
@@ -114,6 +118,7 @@
         return;
       }
       status = "vote submitted";
+      suspectId = "";
     } catch (err) {
       status = "can't submit vote";
     }
@@ -176,7 +181,7 @@
   
   function getPlayerNameById(id){
     const p = players.find((x) => x.player_id === id);
-    return p ? p.name :id;
+    return p ? p.name: id;
   }
 
   let sessionId ="";
@@ -195,7 +200,6 @@
   let phaseTimer = null;
 
   let currentPlayerId = "";
-  let VoterId = "";
   let suspectId = "";
 </script>
 
@@ -224,14 +228,17 @@
     {:else}
     <ul>
       {#each players as p}
-        <li on:click={()=> (VoterId = p.player_id)} style="cursor: pointer;">
+        <li>
+         <button type="button" on:click={()=> (suspectId = p.player_id)} style="cursor: pointer;">
           {p.name} , id: {p.player_id} , bot: {p.is_bot}
+         </button>
         </li>
       {/each}
     </ul>
   {/if}
   <hr />
   <h3>Vote</h3>
+  <p>selected Suspect: {suspectId? getPlayerNameById(suspectId) : "none"}</p>
   <button on:click={submitVote} disabled={gamePhase !== "voting"}>Submit Vote</button>
   <hr />
   <h3>Reveal</h3>
