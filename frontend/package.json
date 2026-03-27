@@ -14,5 +14,8 @@
     "svelte": "^5.53.12",
     "tailwindcss": "^4.2.2",
     "vite": "^8.0.1"
+  },
+  "dependencies": {
+    "sweetalert2": "^11.26.24"
   }
 }

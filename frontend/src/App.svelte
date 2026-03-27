@@ -1,4 +1,6 @@
 <script>
+  import Swal from "sweetalert2";
+  
   let status = "Not checked yet";
   const APP_STATE_KEY = "humane_state";
 
@@ -336,13 +338,12 @@
   <br>
   <p>selected Suspect: {suspectId? getPlayerNameById(suspectId) : "none"}</p>
   <br>
-  <button on:click={submitVote} disabled={gamePhase !== "voting"}>Submit Vote</button>
+  <button on:click={submitVote} disabled={gamePhase !== "voting"} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Submit Vote</button>
   </div>
   <br>
 
   <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
-  <h3 class="font-bold">Reveal</h3>
-  <button on:click={revealResult}>Reveal Result</button>
+  <button on:click={revealResult} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Reveal Result</button>
   {#if revealData}
     <p>Human player was: {revealData.human_player
       ? `${revealData.human_player.name} (id: ${revealData.human_player.player_id})` : "none"}
