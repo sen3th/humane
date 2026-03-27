@@ -273,25 +273,46 @@
 </script>
 
 <main>
-  <h1>Humane :)</h1>
-  <p>Phase: {gamePhase}, time Left: {countdownSeconds}</p>
-  <button on:click={resetGame}>New Game</button>
-  <input bind:value={humanName} placeholder="enter your name"/>
-  <button on:click={createSession}>make Session</button>
-  <hr />
-  <input bind:value={messageText} placeholder="type a message" />
-  <button on:click={sendMessage} disabled={gamePhase !== "chat"}>Send Message</button>
-  <h3>Chatlog</h3>
+  <h1 class="text-lg mt-2.5">Humane :)</h1>
+  <br>
+
+  <div class="p-2 bg-gray-200 rounded-md">
+    <p class="text-lg">Phase: {gamePhase}</p>
+    <p class="text-lg">Time left: {countdownSeconds}</p>
+    <br>
+    <button on:click={resetGame} class="bg-blue-500 text-white px-4 py-2 rounded">New Game</button>
+    <br/>
+    <br/>
+    <input bind:value={humanName} placeholder="enter your name" class="border border-gray-300 p-2 rounded"/>
+    <button on:click={createSession} class="bg-green-500 text-white px-4 py-2 rounded">make Session</button>
+    <br/>
+    <br/>
+  </div>
+  <br>
+
+<div class="p-2 bg-gray-200 rounded-md">
+  <h3 class="font-bold">Chatlog</h3>
+  <br>
   {#if chatlog.length ===0}
-    <p>no messages Yet</p>
+    <p>No messages Yet</p>
     {:else}
+    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
       <ul>
         {#each chatlog as m}
           <li>{m.name}: {m.message}</li>
         {/each}
       </ul>
+    </div>
   {/if}
+    <br>
+  <input bind:value={messageText} placeholder="type a message" class="border border-gray-300 p-2 rounded"/>
+  <button on:click={sendMessage} disabled={gamePhase !== "chat"} class="bg-blue-500 text-white px-4 py-2 rounded">Send Message</button>
+</div>
+  
+  <br>
 
+
+<div class="p-2 bg-gray-200 rounded-md">
   <h3>Players rn:</h3>
   {#if players.length ===0}
     <p>No players yet</p>
@@ -306,11 +327,17 @@
       {/each}
     </ul>
   {/if}
-  <hr />
+  </div>
+  <br>
+
+  <div class="p-2 bg-gray-200 rounded-md">
   <h3>Vote</h3>
   <p>selected Suspect: {suspectId? getPlayerNameById(suspectId) : "none"}</p>
   <button on:click={submitVote} disabled={gamePhase !== "voting"}>Submit Vote</button>
-  <hr />
+  </div>
+  <br>
+
+  <div class="p-2 bg-gray-200 rounded-md">
   <h3>Reveal</h3>
   <button on:click={revealResult}>Reveal Result</button>
   {#if revealData}
@@ -329,4 +356,5 @@
         <p>No votes</p>
       {/if}
   {/if}
+  </div>
   </main>
