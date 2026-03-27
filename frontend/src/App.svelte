@@ -230,6 +230,19 @@
     localStorage.removeItem(APP_STATE_KEY);
   }
 
+  function resetGame(){
+    clearUiState();
+    sessionId ="";
+    currentPlayerId = "";
+    players = [];
+    chatlog = [];
+    gamePhase = "chat";
+    countdownSeconds = 0;
+    suspectId = "";
+    revealData = null;
+    messageText = "";
+  }
+
   let sessionId ="";
 
   let messageText = "";
@@ -262,6 +275,7 @@
 <main>
   <h1>Humane :)</h1>
   <p>Phase: {gamePhase}, time Left: {countdownSeconds}</p>
+  <button on:click={resetGame}>New Game</button>
   <input bind:value={humanName} placeholder="enter your name"/>
   <button on:click={createSession}>make Session</button>
   <hr />
