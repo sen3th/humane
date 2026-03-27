@@ -272,11 +272,12 @@
   }
 </script>
 
-<main>
+<main class="min-h-screen w-full px-3 py-6 sm:px-6">
+<div class="mx-auto w-full max-w-3xl space-y-4">
   <h1 class="text-lg mt-2.5">Humane :)</h1>
   <br>
 
-  <div class="p-2 bg-gray-200 rounded-md">
+  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
     <p class="text-lg">Phase: {gamePhase}</p>
     <p class="text-lg">Time left: {countdownSeconds}</p>
     <br>
@@ -290,11 +291,11 @@
   </div>
   <br>
 
-<div class="p-2 bg-gray-200 rounded-md">
+<div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
   <h3 class="font-bold">Chatlog</h3>
   <br>
   {#if chatlog.length ===0}
-    <p>No messages Yet</p>
+    <p>No messages Yet!</p>
     {:else}
     <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
       <ul>
@@ -312,10 +313,10 @@
   <br>
 
 
-<div class="p-2 bg-gray-200 rounded-md">
-  <h3>Players rn:</h3>
+<div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+  <h3 class="font-bold">Current Players:</h3>
   {#if players.length ===0}
-    <p>No players yet</p>
+    <p>No players yet!</p>
     {:else}
     <ul>
       {#each players as p}
@@ -330,15 +331,17 @@
   </div>
   <br>
 
-  <div class="p-2 bg-gray-200 rounded-md">
-  <h3>Vote</h3>
+  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+  <h3 class="font-bold">Vote</h3>
+  <br>
   <p>selected Suspect: {suspectId? getPlayerNameById(suspectId) : "none"}</p>
+  <br>
   <button on:click={submitVote} disabled={gamePhase !== "voting"}>Submit Vote</button>
   </div>
   <br>
 
-  <div class="p-2 bg-gray-200 rounded-md">
-  <h3>Reveal</h3>
+  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+  <h3 class="font-bold">Reveal</h3>
   <button on:click={revealResult}>Reveal Result</button>
   {#if revealData}
     <p>Human player was: {revealData.human_player
@@ -357,4 +360,5 @@
       {/if}
   {/if}
   </div>
+</div>
   </main>
