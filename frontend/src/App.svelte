@@ -1,6 +1,6 @@
 <script>
   import Swal from "sweetalert2";
-  
+
   let status = "Not checked yet";
   const APP_STATE_KEY = "humane_state";
 
@@ -144,13 +144,7 @@
         return;
     }
       revealData =  data;
-      if (data.playerOutcome === "win"){
-        alert("you win :), bots failed to vote you");
-      } else if (data.playerOutcome === "lose"){
-        alert("you lose, bots voted you out");
-      } else{
-        alert("nothing yet")
-      }
+      await showOutcomeAlert(data.playerOutcome);
       status = "Reveal ready";
       saveUiState();
     }catch (err) {
@@ -187,6 +181,29 @@
     }catch (err) {
     }
     
+  }
+
+  async function showOutcomeAlert(playerOutcome){
+    if (playerOutcome === "win"){
+      await Swal.fire({
+        title: "You Win :)",
+        text: "bots failed to vote you",
+        icon: "success",
+        confirmButtonText: "yay!",
+        confirmButtonColor: "#4ade80"
+      })
+      return;
+    }
+    if (playerOutcome === "lose"){
+      await Swal.fire({
+        title: "You Lose!",
+        text: "bots voted you out",
+        icon: "error",
+        confirmButtonText: "ok",
+        confirmButtonColor: "#ef4444"
+      })
+      return;
+    }
   }
   
   function getPlayerNameById(id){
