@@ -29,7 +29,7 @@ In order to run the project locally, you need to have python installed on your m
    ```bash
    npm run dev
    ```
-7. Open your browser and go to `http://localhost:5173` to play the game.
+7. Open your browser and go to `http://localhost:5173` to access the frontend.
 
 ## Contributing
 Contributions are welcome! If you want to contribute to the project, you can fork the repository and create a pull request! Thanks :)
