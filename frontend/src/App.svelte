@@ -6,7 +6,7 @@
 
   async function checkBackend() {
     try {
-      const res = await fetch("http://127.0.0.1:8000/ping");
+      const res = await fetch("https://humane-bu3r.onrender.com/ping");
       const data = await res.json();
       status = data.message;
     } catch (err) {
@@ -21,7 +21,7 @@
     }
     clearUiState();
     try {
-      const res = await fetch("http://127.0.0.1:8000/sessions",{
+      const res = await fetch("https://humane-bu3r.onrender.com/sessions",{
         method : "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
@@ -69,7 +69,7 @@
       return;
     }
     try {
-      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/chat`, {
+      const res = await fetch(`https://humane-bu3r.onrender.com/sessions/${sessionId}/chat`, {
         method:"POST",
         headers: {
           "Content-Type": "application/json",
@@ -108,7 +108,7 @@
       return;
     }
     try {
-      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/vote`,{
+      const res = await fetch(`https://humane-bu3r.onrender.com/sessions/${sessionId}/vote`,{
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -137,7 +137,7 @@
       return;
     }
     try{
-      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/reveal`);
+      const res = await fetch(`https://humane-bu3r.onrender.com/sessions/${sessionId}/reveal`);
       const data = await res.json();
       if (!res.ok) {
         status = data.detail || "reveal Failed";
@@ -156,7 +156,7 @@
   async function botTick(){
     if (!sessionId) return;
     try {
-      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/bot-tick`, {
+      const res = await fetch(`https://humane-bu3r.onrender.com/sessions/${sessionId}/bot-tick`, {
         method: "POST",
       });
       const data = await res.json();
@@ -171,7 +171,7 @@
   async function loadGamesState(){
     if (!sessionId) return;
     try{
-      const res = await fetch(`http://127.0.0.1:8000/sessions/${sessionId}/state`);
+      const res = await fetch(`https://humane-bu3r.onrender.com/sessions/${sessionId}/state`);
       const data = await res.json();
       if (res.ok){
         gamePhase = data.phase;
