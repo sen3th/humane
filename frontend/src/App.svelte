@@ -382,5 +382,5 @@
   </main>
 
 <footer class="w-full py-4 text-center text-sm text-gray-500">
-  &copy; <a href="https://seneth.me" target="_blank" rel="noopener noreferrer">seneth.me</a> | <a href="https://github.com/seneth/humane" target="_blank" rel="noopener noreferrer">GitHub</a>
+  &copy; <a href="https://seneth.me" target="_blank" rel="noopener noreferrer">seneth.me</a> | <a href="https://github.com/sen3th/humane" target="_blank" rel="noopener noreferrer">GitHub</a>
 </footer>
