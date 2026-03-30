@@ -1,3 +1,4 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/219f98aa-2b0d-43e9-9523-5f396833e004/deploy-status)](https://app.netlify.com/projects/humane-the-game/deploys)
 # Humane
 
 Humane is a social elimination game where you get to join a room with a bunch of AI bots. They will try to eliminate you based on your messages on the chat. In order to win, you have to make them think you're a bot.
