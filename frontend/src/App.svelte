@@ -262,6 +262,23 @@
     messageText = "";
   }
 
+  function showInstructions(){
+    Swal.fire({
+      title: "How to play",
+      html:`
+      <ul class="text-left list-disc pl-5">
+        <li>Enter your name and create a session</li>
+        <li>Chat with bots till the timer runs out (try to blend in!)</li>
+        <li>After voting phase starts, sabotage bots by voting for them (or yourself if you're crazy) </li>
+        <li>After voting ends, click reveal to see if you fooled the bots or not</li>
+        <li>Make a new session to play again :)</li>
+      </ul>
+      `
+    })
+  }
+
+  showInstructions();
+
   let sessionId ="";
 
   let messageText = "";
