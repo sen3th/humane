@@ -174,11 +174,25 @@
       const res = await fetch(`https://humane-1-dznm.onrender.com/sessions/${sessionId}/state`);
       const data = await res.json();
       if (res.ok){
+        const oldPhase = gamePhase;
         gamePhase = data.phase;
         countdownSeconds = data.chat_seconds_left;
         saveUiState();
+
+        if (oldPhase === "voting" && gamePhase === "reveal"){
+          await revealResult();
+        }else if (gamePhase === "voting" && countdownSeconds <= 0){
+          await revealResult();
+        }else if (gamePhase === "reveal" && !revealData && data.reveal_data){
+          revealData = data.reveal_data;
+          await showOutcomeAlert(revealData.playerOutcome);
+          status = "ready to reveal"
+          saveUiState();
+        } 
+        previousPhase = gamePhase;
       }
     }catch (err) {
+      console.error("can't load game state");
     }
     
   }
@@ -297,6 +311,8 @@
   let currentPlayerId = "";
   let suspectId = "";
 
+  let previousPhase = "chat";
+
   restoreUiState();
   if (sessionId){
     if (botTickTimer) clearInterval(botTickTimer);
@@ -316,6 +332,9 @@
   <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
     <p class="text-lg">Phase: {gamePhase}</p>
     <p class="text-lg">Time left: {countdownSeconds}</p>
+    {#if gamePhase === "voting"}
+      <p>Voting ends in {countdownSeconds} seconds</p>
+    {/if}
     <br>
     <button on:click={resetGame} class="bg-blue-500 text-white px-4 py-2 rounded">New Game</button>
     <br/>

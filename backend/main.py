@@ -11,6 +11,8 @@ import random
 import sqlite3
 import json
 
+VOTING_DURATION = 30
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -38,6 +40,16 @@ def load_all_sessions():
     conn.close()
     for session_id, data_json in rows:
         sessions[session_id] = json.loads(data_json)
+
+def voting_seconds_left(session:dict)->int:
+    if "voting_startTime" in session:
+        elapsed = time.time() - session["voting_startTime"]
+        return max(0, VOTING_DURATION - int(elapsed))
+    return 0
+
+def start_voting_phase(session):
+    session["phase"] = "voting"
+    session["voting_startTime"] = time.time()
 
 sessions: Dict[str, dict] = {}
 
@@ -87,9 +99,25 @@ class BotTickResponse(BaseModel):
 def refresh_session_phase(session_id: str) -> None:
     session = sessions[session_id]
     if session["phase"] == "chat" and time.time() >= session.get("chat_ends_at", 0):
-        session["phase"] = "voting"
+        start_voting_phase(session)
         cast_bot_votes(session)
         save_session(session_id)
+        return
+    if session["phase"] == "voting":
+        if check_voting_expiry(session):
+            save_session(session_id)
+def check_voting_expiry(session):
+    if session.get("phase") != "voting":
+        return False
+    elapsed = time.time() - session.get("voting_startTime", 0)
+    if elapsed >= VOTING_DURATION:
+        end_voting_phase(session)
+        return True
+    return False
+
+def end_voting_phase(session):
+    session["phase"] = "reveal"
+
 def chat_seconds_left(session:dict)->int:
     return max(0, int(session.get("chat_ends_at", 0) - time.time()))
 def cast_bot_votes(session:dict) -> None:
@@ -325,7 +353,19 @@ def session_state(session_id: str):
         raise HTTPException(status_code = 404, detail="Session not found")
     session = sessions[session_id]
     refresh_session_phase(session_id)
+    check_voting_expiry(session)
+    if session["phase"] == "chat":
+        seconds_left = chat_seconds_left(session)
+    elif session["phase"] == "voting":
+        seconds_left = voting_seconds_left(session)
+    else:seconds_left = 0
+
+    reveal_payload = None
+    if session("phase") == "reveal":
+        reveal_payload = reveal(session_id)
+
     return {
         "phase": session["phase"],
-        "chat_seconds_left": chat_seconds_left(session),
+        "chat_seconds_left": seconds_left,
+        "reveal_data": reveal_payload,
     }
