@@ -146,6 +146,7 @@
       revealData =  data;
       await showOutcomeAlert(data.playerOutcome);
       status = "Reveal ready";
+      alreadyRevealed = true;
       saveUiState();
     }catch (err) {
       status = "can't reveal result";
@@ -174,27 +175,20 @@
       const res = await fetch(`https://humane-1-dznm.onrender.com/sessions/${sessionId}/state`);
       const data = await res.json();
       if (res.ok){
-        const oldPhase = gamePhase;
         gamePhase = data.phase;
         countdownSeconds = data.chat_seconds_left;
         saveUiState();
 
-        if (oldPhase === "voting" && gamePhase === "reveal"){
-          await revealResult();
-        }else if (gamePhase === "voting" && countdownSeconds <= 0){
-          await revealResult();
-        }else if (gamePhase === "reveal" && !revealData && data.reveal_data){
+        if (gamePhase === "reveal" && !revealData && data.reveal_data) {
           revealData = data.reveal_data;
           await showOutcomeAlert(revealData.playerOutcome);
-          status = "ready to reveal"
+          status = "Reveal ready";
           saveUiState();
-        } 
-        previousPhase = gamePhase;
+        }
       }
     }catch (err) {
-      console.error("can't load game state");
+      console.error("can't load game state", err);
     }
-    
   }
 
   async function showOutcomeAlert(playerOutcome){
@@ -312,6 +306,7 @@
   let suspectId = "";
 
   let previousPhase = "chat";
+  let alreadyRevealed = false;
 
   restoreUiState();
   if (sessionId){

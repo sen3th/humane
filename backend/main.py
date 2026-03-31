@@ -361,11 +361,11 @@ def session_state(session_id: str):
     else:seconds_left = 0
 
     reveal_payload = None
-    if session("phase") == "reveal":
+    if session.get("phase") == "reveal":
         reveal_payload = reveal(session_id)
 
     return {
-        "phase": session["phase"],
+        "phase": session.get("phase"),
         "chat_seconds_left": seconds_left,
         "reveal_data": reveal_payload,
     }
