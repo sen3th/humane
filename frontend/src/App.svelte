@@ -38,6 +38,8 @@
       sessionId = data.session_id;
       players = data.players || [];
 
+      humanName ="";
+
       const human = players.find((p) => !p.is_bot);
       currentPlayerId = human ? human.player_id : "";
       if (botTickTimer) clearInterval(botTickTimer);
@@ -85,6 +87,7 @@
         return;
       }
       chatlog = [...chatlog, data];
+      messageText = ""
       status = `${data.name} says: ${data.message}`;
       saveUiState();
       botTick();
