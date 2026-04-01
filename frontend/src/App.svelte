@@ -94,6 +94,13 @@
     }
   }
 
+  function handleMessageKeydown(event){
+    if (event.key === "Enter"){
+      event.preventDefault();
+      sendMessage();
+    }
+  }
+
   async function submitVote(){
     if (!sessionId){
       status = "make a session first";
@@ -356,7 +363,7 @@
     </div>
   {/if}
     <br>
-  <input bind:value={messageText} placeholder="type a message" class="border border-gray-300 p-2 rounded"/>
+  <input bind:value={messageText} on:keydown={handleMessageKeydown} placeholder="type a message" class="border border-gray-300 p-2 rounded"/>
   <button on:click={sendMessage} disabled={gamePhase !== "chat"} class="bg-blue-500 text-white px-4 py-2 rounded">Send Message</button>
 </div>
   
