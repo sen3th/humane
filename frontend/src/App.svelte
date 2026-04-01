@@ -19,6 +19,11 @@
       status = "enter human player name first";
       return;
     }
+    if (!Number.isFinite(Number(gameDurationSeconds))){
+      status = "invalid time"
+      return;
+    }
+    gameDurationSeconds = Math.max(15, Math.min(600, Number(gameDurationSeconds)));
     clearUiState();
     try {
       const res = await fetch("https://humane-1-dznm.onrender.com/sessions",{
@@ -26,7 +31,8 @@
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
           human_name: humanName,
-          bot_count: 3
+          bot_count: 3,
+          chat_duration_seconds: gameDurationSeconds
         }),
       });
       const data = await res.json();
@@ -234,6 +240,7 @@
       sessionId,
       currentPlayerId,
       humanName,
+      gameDurationSeconds,
       players,
       chatlog,
       gamePhase,
@@ -258,6 +265,7 @@
       countdownSeconds = data.countdownSeconds || 0;
       suspectId = data.suspectId || "";
       revealData = data.revealData || null;
+      gameDurationSeconds = Number(data.gameDurationSeconds || 60);
     } catch (err) {
       localStorage.removeItem(APP_STATE_KEY);
     }
@@ -306,6 +314,7 @@
   let chatlog = [];
 
   let humanName = "";
+  let gameDurationSeconds = 60;
   let botTickTimer = null;
 
   let gamePhase = "chat"
@@ -345,6 +354,8 @@
     <br/>
     <br/>
     <input bind:value={humanName} placeholder="enter your name" class="border border-gray-300 p-2 rounded"/>
+    <label class = "block mt-2 text-sm">game duration (15 to 600 secs)</label>
+    <input type="number" min="15" max="600"step="5" bind:value={gameDurationSeconds} placeholder="60" class="border border-gray p-2 rounded"/>
     <button on:click={createSession} class="bg-green-500 text-white px-4 py-2 rounded">make Session</button>
     <br/>
     <br/>
