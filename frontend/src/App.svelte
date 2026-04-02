@@ -160,6 +160,10 @@
         return;
     }
       revealData =  data;
+      if (data.revealOutcome === "win") humanWins += 1;
+      else if(data.playerOutcome === "lose") humanLosses += 1;
+      gamesPlayed +=1;
+      saveUiState();
       await showOutcomeAlert(data.playerOutcome);
       status = "Reveal ready";
       alreadyRevealed = true;
@@ -193,6 +197,8 @@
       if (res.ok){
         gamePhase = data.phase;
         countdownSeconds = data.chat_seconds_left;
+        voteTally = data.vote_tally || {};
+        voteCounts = data.vote_counts || {};
         saveUiState();
 
         if (gamePhase === "reveal" && !revealData && data.reveal_data) {
@@ -207,6 +213,11 @@
     }
   }
 
+  function tallyText(){
+    const lines = Object.entries(voteCounts).map(
+      ([id, count]) => `${getPlayerNameById(id)}:${count}`
+  ); return lines.length?`Vote tally:\n${lines.join("\n")}\n\n`:"";
+  }
   async function showOutcomeAlert(playerOutcome){
     if (playerOutcome === "win"){
       await Swal.fire({
@@ -246,7 +257,12 @@
       gamePhase,
       countdownSeconds,
       suspectId,
-      revealData
+      revealData,
+      voteTally,
+      voteCounts,
+      humanWins,
+      humanLosses,
+      gamesPlayed
     };
     localStorage.setItem(APP_STATE_KEY, JSON.stringify(data));
   }
@@ -266,6 +282,11 @@
       suspectId = data.suspectId || "";
       revealData = data.revealData || null;
       gameDurationSeconds = Number(data.gameDurationSeconds || 60);
+      voteTally = data.voteTally || {};
+      voteCounts = data.voteCounts || {};
+      humanWins = data.humanWins || 0;
+      humanLosses = data.humanLosses || 0;
+      gamesPlayed = data.gamesPlayed || 0;
     } catch (err) {
       localStorage.removeItem(APP_STATE_KEY);
     }
@@ -326,6 +347,12 @@
 
   let previousPhase = "chat";
   let alreadyRevealed = false;
+
+  let voteTally = {};
+  let voteCounts = {};
+  let humanWins = 0;
+  let humanLosses = 0;
+  let gamesPlayed = 0;
 
   restoreUiState();
   if (sessionId){
@@ -413,6 +440,24 @@
   <button on:click={submitVote} disabled={gamePhase !== "voting"} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Submit Vote</button>
   </div>
   <br>
+  <div class="mt-2 text-sm">
+    <h4 class="font-semibold">Live vote counts</h4>
+    {#if Object.keys(voteCounts).length>0}
+    <ul class="list-disc pl-5">
+      {#each Object.entries(voteCounts) as [id, count]}
+        <li>{getPlayerNameById(id)}:{count}</li>
+        {/each}
+    </ul>
+    {:else}
+     <p>nobody votes yet!</p>
+     {/if}
+  </div>
+
+  <button class="text-xs text-gray-600 underline"
+  on:click={()=>{
+    humanWins = humanLosses = gamesPlayed = 0; saveUiState();
+  }}
+  >Reset stats</button>
 
   <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
   <button on:click={revealResult} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Reveal Result</button>

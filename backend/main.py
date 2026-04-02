@@ -96,6 +96,12 @@ class BotTickResponse(BaseModel):
     ok: bool
     message: dict | None = None
 
+def compute_vote_counts(votes):
+    tally = {}
+    for target in votes.values():
+        tally[target] = tally.get(target, 0)+1
+    return tally
+
 def refresh_session_phase(session_id: str) -> None:
     session = sessions[session_id]
     if session["phase"] == "chat" and time.time() >= session.get("chat_ends_at", 0):
@@ -370,4 +376,6 @@ def session_state(session_id: str):
         "phase": session.get("phase"),
         "chat_seconds_left": seconds_left,
         "reveal_data": reveal_payload,
+        "vote_tally": compute_vote_counts("votes", {}),
+        "vote_counts": compute_vote_counts(session.get("votes", {}))
     }
