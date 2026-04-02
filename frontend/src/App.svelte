@@ -392,9 +392,12 @@
     <ul>
       {#each players as p}
         <li>
-         <button type="button" on:click={()=> {suspectId = p.player_id; saveUiState(); }} style="cursor: pointer;">
-          {p.name} , id: {p.player_id} , bot: {p.is_bot}
-         </button>
+         <div role="button" tabindex="0" class="p-3 mb-2 rounded-lg border transition curser-pointer {suspectId===p.player_id ? 'bg-blue-500 text-white' : 'bg-white border-gray-300 hover:bg-gray-100'}" on:click={()=> {suspectId = p.player_id; saveUiState(); }} on:keydown={(e)=>{if(e.key === 'enter' || e.key === ''){suspectId = p.player_id;saveUiState(); }}}>
+         <div class="flex justify-between items-center">
+          <span class="font-medium">{p.name}</span>
+          <span class="text-xs px-2 py-1 rounded-full {p.is_bot ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}">{p.is_bot ? 'bot' : 'you'} </span>
+         </div>
+         </div>
         </li>
       {/each}
     </ul>
