@@ -229,12 +229,14 @@ def create_session(body: CreateSessionRequest):
     bot_names = ["Tom", "Lily", "James", "Emma", "Teddy"]
     bot_styles = ["cautious", "bold", "logical", "quiet", "aggressive"]
     count = max(1, min(body.bot_count, 5))
+    chosen_names = random.sample(bot_names, count)
+    chosen_styles = random.choices(bot_styles, k=count)
     for i in range (count):
         players.append({
             "player_id": str(uuid4()),
-            "name": bot_names[i % len(bot_names)],
+            "name": chosen_names[i],
             "is_bot": True,
-            "style": bot_styles[i % len(bot_styles)],
+            "style": chosen_styles[i],
         })
     sessions[session_id] = {
             "next_bot_index": 0,
