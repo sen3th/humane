@@ -24,6 +24,21 @@
       return;
     }
     gameDurationSeconds = Math.max(15, Math.min(600, Number(gameDurationSeconds)));
+
+    if (botTickTimer) {clearInterval(botTickTimer); botTickTimer = null;}
+    if (phaseTimer){clearInterval(phaseTimer); phaseTimer = null;}
+    sessionId="";
+    currentPlayerId = "";
+    players = [];
+    chatlog = [];
+    messageText = "";
+    gamePhase = "";
+    countdownSeconds = 0;
+    suspectId = "";
+    revealData = null;
+    voteTally={};
+    voteCounts = {};
+    
     clearUiState();
     try {
       const res = await fetch("https://humane-1-dznm.onrender.com/sessions",{
@@ -308,6 +323,8 @@
     suspectId = "";
     revealData = null;
     messageText = "";
+    voteTally = {};
+    voteCounts = {};
   }
 
   function showInstructions(){
@@ -320,6 +337,7 @@
         <li>After voting phase starts, sabotage bots by voting for them (or yourself if you're crazy) </li>
         <li>After voting ends, click reveal to see if you fooled the bots or not</li>
         <li>Make a new session to play again :)</li>
+        <li>If this is the first time in a while you might need to wait up to a minute for the backend to wake up from sleep (render.com free tier thing)</li>
       </ul>
       `
     })
@@ -441,6 +459,7 @@
   <button on:click={submitVote} disabled={gamePhase !== "voting"} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Submit Vote</button>
   </div>
   <br>
+  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
   <div class="mt-2 text-sm">
     <h4 class="font-semibold">Live vote counts</h4>
     {#if Object.keys(voteCounts).length>0}
@@ -454,11 +473,12 @@
      {/if}
   </div>
 
+  
   <button class="text-xs text-gray-600 underline"
-  on:click={()=>{
-    humanWins = humanLosses = gamesPlayed = 0; saveUiState();
+  on:click={()=>{ voteTally = {}; voteCounts = {}; humanWins = humanLosses = gamesPlayed = 0; saveUiState();
   }}
   >Reset stats</button>
+  </div>
 
   <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
   <button on:click={revealResult} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Reveal Result</button>
