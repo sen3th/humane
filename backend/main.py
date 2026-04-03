@@ -376,6 +376,6 @@ def session_state(session_id: str):
         "phase": session.get("phase"),
         "chat_seconds_left": seconds_left,
         "reveal_data": reveal_payload,
-        "vote_tally": compute_vote_counts("votes", {}),
+        "vote_tally": compute_vote_counts(session.get("votes", {})),
         "vote_counts": compute_vote_counts(session.get("votes", {}))
     }

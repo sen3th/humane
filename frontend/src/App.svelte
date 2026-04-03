@@ -196,7 +196,8 @@
       const data = await res.json();
       if (res.ok){
         gamePhase = data.phase;
-        countdownSeconds = data.chat_seconds_left;
+        const parsedSeconds = Number(data.chat_seconds_left ?? data.seconds_left ?? 0);
+        countdownSeconds = Number.isFinite(parsedSeconds) ? Math.max(0, Math.floor(parsedSeconds)) : 0;
         voteTally = data.vote_tally || {};
         voteCounts = data.vote_counts || {};
         saveUiState();
