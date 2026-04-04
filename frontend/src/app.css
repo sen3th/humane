@@ -47,3 +47,28 @@ html,body{
   pointer-events:none;
   z-index: 10000;
 }
+
+.case-label{
+  display:block;
+  font-size:0.75rem;
+  font-weight:700;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+header{
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom:1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+h1{
+  font-size: 1.5rem;
+  font-weight:900;
+  letter-spacing: 0.05em;
+  text-transform:uppercase;
+  color: var(--accent);
+}
