@@ -411,128 +411,23 @@
   }
 </script>
 
-<main class="min-h-screen w-full px-3 py-6 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-<div class="mx-auto w-full max-w-3xl space-y-4">
-  <h1 class="text-lg mt-2.5 dark:text-gray-100">Humane :)</h1>
-  <br>
-
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-    <button type="button" on:click={toggleDarkMode} class="select-none cursor-pointer text-sm px-3 py-1 rounded bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-600">
-      {darkMode ? "Light" : "dark"}
-    </button>
-    <br>
-    <br>
-    <p class="text-lg">Phase: {gamePhase}</p>
-    <p class="text-lg">Time left: {countdownSeconds}</p>
-    {#if gamePhase === "voting"}
-      <p>Voting ends in {countdownSeconds} seconds</p>
-    {/if}
-    <br>
-    <button on:click={resetGame} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">New Game</button>
-    <br/>
-    <br/>
-    <input bind:value={humanName} placeholder="enter your name" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
-    <label for="game-duration" class = "block mt-2 text-sm">game duration (15 to 600 secs)</label>
-    <input id="game-duration" type="number" min="15" max="600"step="5" bind:value={gameDurationSeconds} placeholder="60" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
-    <button on:click={createSession} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Make Session</button>
-    <br/>
-    <br/>
+<main class="min-h-screen flex flex-col items-center justify-between p-4 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<header class="w-full bg-linear-to-r from-blue-300 to-blue-600 dark:from-blue-300 dark:to-blue-600 text-white p-4 rounded-lg shadow-md flex items-center justify-between">
+  <div>
+    <h1 class="text-2xl font-bold">Humane</h1>
+    <p class="text-sm">blend in with the bots</p>
   </div>
-  <br>
-
-<div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <h3 class="font-bold">Chatlog</h3>
-  <br>
-  {#if chatlog.length ===0}
-    <p>No messages Yet!</p>
-    {:else}
-    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
-      <ul>
-        {#each chatlog as m}
-          <li>{m.name}: {m.message}</li>
-        {/each}
-      </ul>
-    </div>
-  {/if}
-    <br>
-  <input bind:value={messageText} on:keydown={handleMessageKeydown} placeholder="type a message" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
-  <button on:click={sendMessage} disabled={gamePhase !== "chat"} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Send Message</button>
-</div>
-  
-  <br>
-
-
-<div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <h3 class="font-bold">Current Players:</h3>
-  {#if players.length ===0}
-    <p>No players yet!</p>
-    {:else}
-    <ul>
-      {#each players as p}
-        <li>
-         <div role="button" tabindex="0" class="p-3 mb-2 rounded-lg border transition curser-pointer {suspectId===p.player_id ? 'bg-blue-500 text-white dark:bg-blue-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100'}" on:click={()=> {suspectId = p.player_id; saveUiState(); }} on:keydown={(e)=>{if(e.key === 'enter' || e.key === ''){suspectId = p.player_id;saveUiState(); }}}>
-         <div class="flex justify-between items-center">
-          <span class="font-medium">{p.name}</span>
-          <span class="text-xs px-2 py-1 rounded-full {p.is_bot ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}">{p.is_bot ? 'bot' : 'you'} </span>
-         </div>
-         </div>
-        </li>
-      {/each}
-    </ul>
-  {/if}
+  <div class="text-center">
+    <p class = "text-3xl font-bold">{countdownSeconds}</p>
+    <p class ="text-sm opacity-90">{gamePhase}</p>
   </div>
-  <br>
-
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <h3 class="font-bold">Vote</h3>
-  <br>
-  <p>selected Suspect: {suspectId? getPlayerNameById(suspectId) : "none"}</p>
-  <br>
-  <button on:click={submitVote} disabled={gamePhase !== "voting"} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Submit Vote</button>
+  <div class="flex gap-2">
+  <button type="button" on:click={toggleDarkMode} class="px-3 py-2 rounded bg-white/20 hover:bg-white/30 text-white text-sm font-medium">
+    {darkMode ? "light":"dark"}
+  </button>
   </div>
-  <br>
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <div class="mt-2 text-sm">
-    <h4 class="font-semibold">Live vote counts</h4>
-    {#if Object.keys(voteCounts).length>0}
-    <ul class="list-disc pl-5">
-      {#each Object.entries(voteCounts) as [id, count]}
-        <li>{getPlayerNameById(id)}:{count}</li>
-        {/each}
-    </ul>
-    {:else}
-     <p>nobody votes yet!</p>
-     {/if}
-  </div>
-
-  
-  <button class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded"
-  on:click={()=>{ voteTally = {}; voteCounts = {}; humanWins = humanLosses = gamesPlayed = 0; saveUiState();
-  }}
-  >Reset stats</button>
-  </div>
-
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <button on:click={revealResult} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Reveal Result</button>
-  {#if revealData}
-    <p>Human player was: {revealData.human_player
-      ? `${revealData.human_player.name} (id: ${revealData.human_player.player_id})` : "none"}
-    </p>
-    <p>Most voted: {revealData.most_voted_id}</p>
-    <h4>Vote tally</h4>
-    {#if revealData && Object.keys(revealData.vote_tally || {}).length > 0}
-      <ul>
-        {#each Object.entries(revealData.vote_tally) as [playerId, count]}
-         <li>{getPlayerNameById(playerId)}: {count}</li>
-        {/each}
-      </ul>
-      {:else}
-        <p>No votes</p>
-      {/if}
-  {/if}
-  </div>
-</div>
-  </main>
+</header>
+</main>
 
 <footer class="w-full py-4 text-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
   &copy; <a href="https://seneth.me" target="_blank" rel="noopener noreferrer">seneth.me</a> | <a href="https://github.com/sen3th/humane" target="_blank" rel="noopener noreferrer">GitHub</a>

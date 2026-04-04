@@ -1,9 +1,6 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
-body{
-  background-color: rgb(220, 220, 220);
-}
 
 button{
   background-color: rgb(81, 144, 216);
