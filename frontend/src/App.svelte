@@ -384,6 +384,6 @@
   }
 </script>
 
-<main class="min-h-screen w-full px-3 py-6 sm:px-6">
+<main class="app-shell min-h-screen px-4 py-6 sm:px-6">
 
 </main>

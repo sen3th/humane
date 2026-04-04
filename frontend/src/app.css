@@ -20,3 +20,9 @@ html,body{
   background: var(--bg);
   color: var(--text);
 }
+.app-shell{
+  background:linear-gradient(180deg, rgba(125,255, 99, 0,03), transparent 20%), linear-gradient(180deg, var(--bg));
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+}
