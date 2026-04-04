@@ -1,24 +1,2 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
-
-
-button{
-  background-color: rgb(81, 144, 216);
-  border-radius: 0.5ch;
-  padding: 0.5ch;
-}
-button:disabled{
-  background-color: rgb(200, 200, 200);
-}
-button:hover:not(:disabled){
-  background-color: rgb(60, 120, 200);
-}
-button:active:not(:disabled){
-  background-color: rgb(40, 100, 180);
-}
-
-input{
-  border-color: rgb(0, 0, 0);
-  border-radius: 0.5ch;
-  padding: 0.5ch;
-}

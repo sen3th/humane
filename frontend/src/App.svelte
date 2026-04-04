@@ -1,33 +1,6 @@
 <script>
   import Swal from "sweetalert2";
 
-  let darkMode = false;
-  const DARK_MODE_KEY = "humane_darkmode";
-
-  function initDarkMode(){
-    const saved = localStorage.getItem(DARK_MODE_KEY);
-    if (saved !== null){
-      darkMode = JSON.parse(saved);
-    }else{
-      darkMode = window.matchMedia('(prefers-color-scheme:dark)').matches;
-    }
-    applyDarkMode();
-  }
-  function toggleDarkMode(){
-    darkMode = !darkMode;
-    localStorage.setItem(DARK_MODE_KEY, JSON.stringify(darkMode));
-    applyDarkMode();
-  }
-  function applyDarkMode(){
-    const html = document.documentElement;
-    if (darkMode){
-      html.classList.add("dark");
-    } else{
-      html.classList.remove("dark");
-    }
-  }
-  initDarkMode();
-
   let status = "Not checked yet";
   const APP_STATE_KEY = "humane_state";
 
@@ -411,24 +384,6 @@
   }
 </script>
 
-<main class="min-h-screen flex flex-col items-center justify-between p-4 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-<header class="w-full bg-linear-to-r from-blue-300 to-blue-600 dark:from-blue-300 dark:to-blue-600 text-white p-4 rounded-lg shadow-md flex items-center justify-between">
-  <div>
-    <h1 class="text-2xl font-bold">Humane</h1>
-    <p class="text-sm">blend in with the bots</p>
-  </div>
-  <div class="text-center">
-    <p class = "text-3xl font-bold">{countdownSeconds}</p>
-    <p class ="text-sm opacity-90">{gamePhase}</p>
-  </div>
-  <div class="flex gap-2">
-  <button type="button" on:click={toggleDarkMode} class="px-3 py-2 rounded bg-white/20 hover:bg-white/30 text-white text-sm font-medium">
-    {darkMode ? "light":"dark"}
-  </button>
-  </div>
-</header>
-</main>
+<main class="min-h-screen w-full px-3 py-6 sm:px-6">
 
-<footer class="w-full py-4 text-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-  &copy; <a href="https://seneth.me" target="_blank" rel="noopener noreferrer">seneth.me</a> | <a href="https://github.com/sen3th/humane" target="_blank" rel="noopener noreferrer">GitHub</a>
-</footer>
+</main>
