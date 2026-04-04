@@ -1,4 +1,8 @@
 @import "tailwindcss";
+
+body {
+  font-family:"Courier New", Courier, monospace;
+}
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root{
