@@ -1,6 +1,33 @@
 <script>
   import Swal from "sweetalert2";
 
+  let darkMode = false;
+  const DARK_MODE_KEY = "humane_darkmode";
+
+  function initDarkMode(){
+    const saved = localStorage.getItem(DARK_MODE_KEY);
+    if (saved !== null){
+      darkMode = JSON.parse(saved);
+    }else{
+      darkMode = window.matchMedia('(prefers-color-scheme:dark)').matches;
+    }
+    applyDarkMode();
+  }
+  function toggleDarkMode(){
+    darkMode = !darkMode;
+    localStorage.setItem(DARK_MODE_KEY, JSON.stringify(darkMode));
+    applyDarkMode();
+  }
+  function applyDarkMode(){
+    const html = document.documentElement;
+    if (darkMode){
+      html.classList.add("dark");
+    } else{
+      html.classList.remove("dark");
+    }
+  }
+  initDarkMode();
+
   let status = "Not checked yet";
   const APP_STATE_KEY = "humane_state";
 
@@ -384,31 +411,36 @@
   }
 </script>
 
-<main class="min-h-screen w-full px-3 py-6 sm:px-6">
+<main class="min-h-screen w-full px-3 py-6 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
 <div class="mx-auto w-full max-w-3xl space-y-4">
-  <h1 class="text-lg mt-2.5">Humane :)</h1>
+  <h1 class="text-lg mt-2.5 dark:text-gray-100">Humane :)</h1>
   <br>
 
-  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
+    <button type="button" on:click={toggleDarkMode} class="select-none cursor-pointer text-sm px-3 py-1 rounded bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-600">
+      {darkMode ? "Light" : "dark"}
+    </button>
+    <br>
+    <br>
     <p class="text-lg">Phase: {gamePhase}</p>
     <p class="text-lg">Time left: {countdownSeconds}</p>
     {#if gamePhase === "voting"}
       <p>Voting ends in {countdownSeconds} seconds</p>
     {/if}
     <br>
-    <button on:click={resetGame} class="bg-blue-500 text-white px-4 py-2 rounded">New Game</button>
+    <button on:click={resetGame} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">New Game</button>
     <br/>
     <br/>
-    <input bind:value={humanName} placeholder="enter your name" class="border border-gray-300 p-2 rounded"/>
-    <label class = "block mt-2 text-sm">game duration (15 to 600 secs)</label>
-    <input type="number" min="15" max="600"step="5" bind:value={gameDurationSeconds} placeholder="60" class="border border-gray p-2 rounded"/>
-    <button on:click={createSession} class="bg-green-500 text-white px-4 py-2 rounded">make Session</button>
+    <input bind:value={humanName} placeholder="enter your name" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
+    <label for="game-duration" class = "block mt-2 text-sm">game duration (15 to 600 secs)</label>
+    <input id="game-duration" type="number" min="15" max="600"step="5" bind:value={gameDurationSeconds} placeholder="60" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
+    <button on:click={createSession} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Make Session</button>
     <br/>
     <br/>
   </div>
   <br>
 
-<div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+<div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
   <h3 class="font-bold">Chatlog</h3>
   <br>
   {#if chatlog.length ===0}
@@ -423,14 +455,14 @@
     </div>
   {/if}
     <br>
-  <input bind:value={messageText} on:keydown={handleMessageKeydown} placeholder="type a message" class="border border-gray-300 p-2 rounded"/>
-  <button on:click={sendMessage} disabled={gamePhase !== "chat"} class="bg-blue-500 text-white px-4 py-2 rounded">Send Message</button>
+  <input bind:value={messageText} on:keydown={handleMessageKeydown} placeholder="type a message" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
+  <button on:click={sendMessage} disabled={gamePhase !== "chat"} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Send Message</button>
 </div>
   
   <br>
 
 
-<div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+<div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
   <h3 class="font-bold">Current Players:</h3>
   {#if players.length ===0}
     <p>No players yet!</p>
@@ -438,7 +470,7 @@
     <ul>
       {#each players as p}
         <li>
-         <div role="button" tabindex="0" class="p-3 mb-2 rounded-lg border transition curser-pointer {suspectId===p.player_id ? 'bg-blue-500 text-white' : 'bg-white border-gray-300 hover:bg-gray-100'}" on:click={()=> {suspectId = p.player_id; saveUiState(); }} on:keydown={(e)=>{if(e.key === 'enter' || e.key === ''){suspectId = p.player_id;saveUiState(); }}}>
+         <div role="button" tabindex="0" class="p-3 mb-2 rounded-lg border transition curser-pointer {suspectId===p.player_id ? 'bg-blue-500 text-white dark:bg-blue-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100'}" on:click={()=> {suspectId = p.player_id; saveUiState(); }} on:keydown={(e)=>{if(e.key === 'enter' || e.key === ''){suspectId = p.player_id;saveUiState(); }}}>
          <div class="flex justify-between items-center">
           <span class="font-medium">{p.name}</span>
           <span class="text-xs px-2 py-1 rounded-full {p.is_bot ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}">{p.is_bot ? 'bot' : 'you'} </span>
@@ -451,15 +483,15 @@
   </div>
   <br>
 
-  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
   <h3 class="font-bold">Vote</h3>
   <br>
   <p>selected Suspect: {suspectId? getPlayerNameById(suspectId) : "none"}</p>
   <br>
-  <button on:click={submitVote} disabled={gamePhase !== "voting"} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Submit Vote</button>
+  <button on:click={submitVote} disabled={gamePhase !== "voting"} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Submit Vote</button>
   </div>
   <br>
-  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
+  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
   <div class="mt-2 text-sm">
     <h4 class="font-semibold">Live vote counts</h4>
     {#if Object.keys(voteCounts).length>0}
@@ -474,14 +506,14 @@
   </div>
 
   
-  <button class="text-xs text-gray-600 underline"
+  <button class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded"
   on:click={()=>{ voteTally = {}; voteCounts = {}; humanWins = humanLosses = gamesPlayed = 0; saveUiState();
   }}
   >Reset stats</button>
   </div>
 
-  <div class="w-full rounded-xl bg-gray-200 p-4 shadow-sm">
-  <button on:click={revealResult} class="font-bold text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">Reveal Result</button>
+  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
+  <button on:click={revealResult} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Reveal Result</button>
   {#if revealData}
     <p>Human player was: {revealData.human_player
       ? `${revealData.human_player.name} (id: ${revealData.human_player.player_id})` : "none"}
@@ -502,6 +534,6 @@
 </div>
   </main>
 
-<footer class="w-full py-4 text-center text-sm text-gray-500">
+<footer class="w-full py-4 text-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
   &copy; <a href="https://seneth.me" target="_blank" rel="noopener noreferrer">seneth.me</a> | <a href="https://github.com/sen3th/humane" target="_blank" rel="noopener noreferrer">GitHub</a>
 </footer>
