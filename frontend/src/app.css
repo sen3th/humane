@@ -97,7 +97,7 @@ h1{
   border-color: var(--accent);
   box-shadow: 0 0 4px rgba(124, 255, 104, 0.3);
 }
-.case-butoon:hover{
+.case-button:hover{
   background: rgba(124, 255, 104, 0.1);
   border-color: var(--accent);
 }
