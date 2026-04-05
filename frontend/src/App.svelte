@@ -424,6 +424,24 @@
           </button>
         </div>
       </div>
+      <div class="stats-panel">
+        <div class="countdown">
+          {countdownSeconds}
+        </div>
+        <div class="stat-item case-panel">
+          <div class="stat-value">{gamesPlayed}</div>
+          <div class="stat-label">Games played</div>
+        </div>
+        <div class="stat-item case-panel">
+          <div class="stat-value">{humanWins}</div>
+          <div class="stat-label">Wins</div>
+        </div>
+        <div class="stat-item case-panel">
+          <div class="stat-value">{humanLosses}</div>
+          <div class="stat-label">Losses</div>
+        </div>
+        <button on:click={resetGame} class="case-button">Reset Stats</button>
+      </div>
     </div>
     {/if}
   {/if}
