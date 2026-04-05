@@ -388,4 +388,20 @@
   <header>
     <h1>Humane</h1>
   </header>
+
+  {#if !sessionId}
+  <div class="max-w-md">
+    <span class="case-label">Session setup</span>
+    <div class="case panel setup form">
+      <input type="text" placeholder="Enter a name" bind:value={humanName} class="case-input"/>
+      <input type="number" placeholder="duration in seconds" bind:value={gameDurationSeconds} class="case-input"/>
+      <button on:click={createSession} class="case-button case-button-primary">
+        CreateSession
+      </button>
+    </div>
+    {#if status}
+    <p class="text-xs mt-2">{status}</p>
+    {/if}
+  </div>
+  {/if}
 </main>
