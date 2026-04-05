@@ -25,7 +25,7 @@ html,body{
   color: var(--text);
 }
 .app-shell{
-  background:linear-gradient(180deg, rgba(125,255, 99, 0,03), transparent 20%), linear-gradient(180deg, var(--bg));
+  background:linear-gradient(180deg, rgba(125,255, 99, 0.03), transparent 20%), linear-gradient(180deg, var(--bg));
   position: relative;
   isolation: isolate;
   min-height: 100vh;
@@ -122,4 +122,48 @@ h1{
 }
 .setup-form button{
   width:100%;
+}
+
+.chat-container{
+  display:grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1rem;
+  min-height:500px;
+  margin-bottom:2rem;
+}
+
+.chat-panel{
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-log{
+  flex: 1;
+  background: #000;
+  border: 1px solid var(--border);
+  border-radius: 0.2rem;
+  padding: 1rem;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.chat-message{
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+.chat-message strong{
+  color: var(--accent);
+}
+
+.chat-input-row{
+  display:flex;
+  gap:0.5rem;
+}
+
+.chat-input-row input{
+  flex:1;
+}
+.chat-input-row button{
+  flex: 0 0 auto;
 }

@@ -404,4 +404,27 @@
     {/if}
   </div>
   {/if}
+
+  {#if sessionId && gamePhase !== "reveal"}
+    <span class="case-label">Game Phase:{gamePhase}</span>
+    {#if gamePhase === "chat"}
+    <div class="chat-container">
+      <div class="chat-panel case-panel">
+        <div class="chat-log">
+          {#each chatlog as msg(msg.timestamp)}
+            <div class="chat-message">
+              <strong>{msg.name}:</strong> {msg.message}
+            </div>
+            {/each}
+        </div>
+        <div class="chat-input-row">
+          <input type="text" placeholder="type your message" bind:value={messageText} on:keydown={handleMessageKeydown} class="case-input"/>
+          <button on:click={sendMessage} class="case-button case-button-primary">
+            send
+          </button>
+        </div>
+      </div>
+    </div>
+    {/if}
+  {/if}
 </main>
