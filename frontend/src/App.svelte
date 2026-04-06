@@ -87,7 +87,7 @@
       status = "enter player id";
       return;
     }
-    if (!messageText) {
+    if (!messageText.trim()) {
       status = "enter a message";
       return;
     }
@@ -99,7 +99,7 @@
         },
         body: JSON.stringify({
           player_id: currentPlayerId,
-          message: messageText,
+          message: messageText.trim(),
         }),
       });
       const data = await res.json();
@@ -111,7 +111,6 @@
       messageText = ""
       status = `${data.name} says: ${data.message}`;
       saveUiState();
-      botTick();
       status = `${data.name} says: ${data.message}`;
     } catch (err) {
       status = "can't send message";
@@ -392,7 +391,7 @@
   {#if !sessionId}
   <div class="max-w-md">
     <span class="case-label">Session setup</span>
-    <div class="case panel setup-form">
+    <div class="case-panel setup-form">
       <input type="text" placeholder="Enter a name" bind:value={humanName} class="case-input"/>
       <input type="number" placeholder="duration in seconds" bind:value={gameDurationSeconds} class="case-input"/>
       <button on:click={createSession} class="case-button case-button-primary">
@@ -411,7 +410,7 @@
     <div class="chat-container">
       <div class="chat-panel case-panel">
         <div class="chat-log">
-          {#each chatlog as msg(msg.timestamp)}
+          {#each chatlog as msg, i(`${msg.timestamp}-${msg.name}-${i}`)}
             <div class="chat-message">
               <strong>{msg.name}:</strong> {msg.message}
             </div>
