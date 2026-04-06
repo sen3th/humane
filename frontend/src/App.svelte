@@ -400,7 +400,7 @@
       <input type="text" placeholder="Enter a name" bind:value={humanName} class="case-input"/>
       <input type="number" placeholder="duration in seconds" bind:value={gameDurationSeconds} class="case-input"/>
       <button on:click={createSession} class="case-button case-button-primary">
-        CreateSession
+        Create Session
       </button>
     </div>
     {#if status}
