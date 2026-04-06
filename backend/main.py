@@ -11,7 +11,7 @@ import random
 import sqlite3
 import json
 
-VOTING_DURATION = 30
+VOTING_DURATION = 10
 
 app = FastAPI()
 app.add_middleware(
