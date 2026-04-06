@@ -258,3 +258,30 @@ h1{
   margin-bottom: 1rem;
   color: var(--accent);
 }
+
+*{
+  border-radius: 0.2rem !important;
+}
+
+input,button,select, textarea{
+  font-family: "Courier New", Courier, monospace;
+}
+
+:focus-visible{
+  outline:none;
+  box-shadow: 0 0 6px rgba(124, 255, 104, 0.4);
+}
+
+::-webkit-scrollbar{
+  width:8px;
+}
+::-webkit-scrollbar-track {
+  background:var(--bg);
+}
+::webkit-scrollbar-thumb{
+  background: var(--border);
+  border-radius: 0.2rem;
+}
+::-webkit-scrollbar-thumb:hover{
+  background: var(--accent);
+}
