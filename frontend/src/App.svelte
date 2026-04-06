@@ -386,12 +386,13 @@
     phaseTimer = setInterval(loadGamesState, 1000);
     loadGamesState();
   }
-</script>
+</script> 
 
 <main class="app-shell min-h-screen px-4 py-6 sm:px-6 flex flex-col items-center">
   <header>
     <h1>Humane</h1>
   </header>
+  <button on:click={showInstructions} class="case-button mb-4">How to play</button>
 
   {#if !sessionId}
   <div class="max-w-md">
