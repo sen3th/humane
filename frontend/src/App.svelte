@@ -392,7 +392,7 @@
   {#if !sessionId}
   <div class="max-w-md">
     <span class="case-label">Session setup</span>
-    <div class="case panel setup form">
+    <div class="case panel setup-form">
       <input type="text" placeholder="Enter a name" bind:value={humanName} class="case-input"/>
       <input type="number" placeholder="duration in seconds" bind:value={gameDurationSeconds} class="case-input"/>
       <button on:click={createSession} class="case-button case-button-primary">
@@ -450,7 +450,7 @@
     <div class="case-panel">
       <div class="vote-grid">
         {#each players as p (p.player_id)}
-          <button on:click={()=> (suspectId == p.player_id)} class="vote-button {suspectId === p.player_id ? 'selected' : ''}">
+          <button on:click={()=> (suspectId = p.player_id)} class="vote-button {suspectId === p.player_id ? 'selected' : ''}">
           {p.name}</button>
           {/each}
       </div>
