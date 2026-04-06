@@ -443,6 +443,33 @@
         <button on:click={resetGame} class="case-button">Reset Stats</button>
       </div>
     </div>
-    {/if}
   {/if}
+  {#if gamePhase === "voting"}
+  <div class="max-w-md">
+    <span class="case-label">Select a suspect</span>
+    <div class="case-panel">
+      <div class="vote-grid">
+        {#each players as p (p.player_id)}
+          <button on:click={()=> (suspectId == p.player_id)} class="vote-button {suspectId === p.player_id ? 'selected' : ''}">
+          {p.name}</button>
+          {/each}
+      </div>
+      <button on:click={submitVote} class="case-button case-button-primary" style="width: 100%">Vote</button>
+      
+    </div>
+  </div>
+  {/if}{/if}
+
+  {#if gamePhase === "reveal"}
+    <div class="reveal-section">
+      <div class="case-label">Results</div>
+      <div class="case-panel">
+        <div class="reveal-title">{revealData?.player_outcome === "win"?"You win!":"you lose:("}</div>
+        {#if revealData?.vote_tally}
+        <div class="vote-tally">{tallyText()}</div>
+        {/if}
+        <button on:click={resetGame} class="case-button case-button-primary" style="width:100%;">new game</button>
+      </div>
+    </div>
+    {/if}
 </main>
