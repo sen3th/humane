@@ -97,6 +97,15 @@ h1{
   border-color: var(--accent);
   box-shadow: 0 0 4px rgba(124, 255, 104, 0.3);
 }
+.case-button{
+  background: var(--bg);
+  border: 1px var(--border);
+  color: var(--text);
+  padding: 0.5rem 1rem;
+  font-family: "Courier New", Courier, monospace;
+  cursor: pointer;
+  border-radius: 0.2rem;
+}
 .case-button:hover{
   background: rgba(124, 255, 104, 0.1);
   border-color: var(--accent);
