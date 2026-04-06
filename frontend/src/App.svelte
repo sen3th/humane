@@ -173,12 +173,13 @@
         status = data.detail || "reveal Failed";
         return;
     }
-      revealData =  data;
-      if (data.revealOutcome === "win") humanWins += 1;
-      else if(data.playerOutcome === "lose") humanLosses += 1;
-      gamesPlayed +=1;
+      revealData = data;
+      const outcome = getPlayerOutcome(data);
+      if (outcome === "win") humanWins +=1;
+      else if (outcome === "lose") humanLosses +=1;
+      gamesPlayed += 1;
       saveUiState();
-      await showOutcomeAlert(data.playerOutcome);
+      await showOutcomeAlert(outcome);
       status = "Reveal ready";
       alreadyRevealed = true;
       saveUiState();
@@ -218,7 +219,7 @@
 
         if (gamePhase === "reveal" && !revealData && data.reveal_data) {
           revealData = data.reveal_data;
-          await showOutcomeAlert(revealData.playerOutcome);
+          await showOutcomeAlert(getPlayerOutcome(revealData));
           status = "Reveal ready";
           saveUiState();
         }
@@ -233,6 +234,10 @@
       ([id, count]) => `${getPlayerNameById(id)}:${count}`
   ); return lines.length?`Vote tally:\n${lines.join("\n")}\n\n`:"";
   }
+  function getPlayerOutcome(data) {
+    return data?.playerOutcome ?? data?.player_outcome ?? data?.revealOutcome ?? data?.reveal_outcome ?? "";
+  }
+
   async function showOutcomeAlert(playerOutcome){
     if (playerOutcome === "win"){
       await Swal.fire({
@@ -463,7 +468,7 @@
     <div class="reveal-section">
       <div class="case-label">Results</div>
       <div class="case-panel">
-        <div class="reveal-title">{revealData?.player_outcome === "win"?"You win!":"you lose:("}</div>
+        <div class="reveal-title">{getPlayerOutcome(revealData) === "win" ? "You win": "You Lose"}</div>
         {#if revealData?.vote_tally}
         <div class="vote-tally">{tallyText()}</div>
         {/if}
