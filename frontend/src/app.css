@@ -278,7 +278,7 @@ input,button,select, textarea{
 ::-webkit-scrollbar-track {
   background:var(--bg);
 }
-::webkit-scrollbar-thumb{
+::-webkit-scrollbar-thumb{
   background: var(--border);
   border-radius: 0.2rem;
 }
