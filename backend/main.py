@@ -13,6 +13,24 @@ import json
 
 VOTING_DURATION = 10
 
+DEFAULT_TOPICS = [
+    "Best movie of all time",
+    "Favourite human food",
+    "Favourite music band",
+    "What do you think about Pink Floyd?",
+    "Your favourite video game",
+    "best music genre",
+    "Why do you hate the most about humans?"
+]
+
+def normalize_topics(raw_topics: List[str])-> List[str]:
+    cleaned = []
+    for t in (raw_topics or []):
+        s = t.strip()
+        if s:
+            cleaned.append(s)
+    return cleaned if cleaned else DEFAULT_TOPICS.copy()
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -72,12 +90,14 @@ class CreateSessionRequest(BaseModel):
     human_name: str
     bot_count: int = 3
     chat_duration_seconds: int = 60
+    topics: List[str] = []
 
 class CreateSessionResponse(BaseModel):
     session_id: str
     players: list
     phase: str
     chat_seconds_left: int
+    topic: str
 
 
 class JoinRequest(BaseModel):
