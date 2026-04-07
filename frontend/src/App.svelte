@@ -38,6 +38,7 @@
     revealData = null;
     voteTally={};
     voteCounts = {};
+    hasVoted = false;
     
     clearUiState();
     try {
@@ -125,6 +126,10 @@
   }
 
   async function submitVote(){
+    if (hasVoted){
+      status = "You already voted";
+      return;
+    }
     if (!sessionId){
       status = "make a session first";
       return;
@@ -154,6 +159,7 @@
         return;
       }
       status = "vote submitted";
+      hasVoted = true;
       suspectId = "";
       saveUiState();
     } catch (err) {
@@ -282,7 +288,8 @@
       voteCounts,
       humanWins,
       humanLosses,
-      gamesPlayed
+      gamesPlayed,
+      hasVoted
     };
     localStorage.setItem(APP_STATE_KEY, JSON.stringify(data));
   }
@@ -307,6 +314,7 @@
       humanWins = data.humanWins || 0;
       humanLosses = data.humanLosses || 0;
       gamesPlayed = data.gamesPlayed || 0;
+      hasVoted = data.hasVoted || false;
     } catch (err) {
       localStorage.removeItem(APP_STATE_KEY);
     }
@@ -329,6 +337,7 @@
     messageText = "";
     voteTally = {};
     voteCounts = {};
+    hasVoted = false;
   }
 
   function showInstructions(){
@@ -376,6 +385,8 @@
   let humanWins = 0;
   let humanLosses = 0;
   let gamesPlayed = 0;
+
+  let hasVoted = false;
 
   restoreUiState();
   if (sessionId){
@@ -455,11 +466,11 @@
     <div class="case-panel">
       <div class="vote-grid">
         {#each players as p (p.player_id)}
-          <button on:click={()=> (suspectId = p.player_id)} class="vote-button {suspectId === p.player_id ? 'selected' : ''}">
+          <button on:click={()=> (suspectId = p.player_id)} class="vote-button {suspectId === p.player_id ? 'selected' : ''}" disabled={hasVoted}>
           {p.name}</button>
           {/each}
       </div>
-      <button on:click={submitVote} class="case-button case-button-primary" style="width: 100%">Vote</button>
+      <button on:click={submitVote} class="case-button case-button-primary" style="width: 100%" disabled={hasVoted || !suspectId}>Vote</button>
       
     </div>
   </div>

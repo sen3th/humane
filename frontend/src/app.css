@@ -294,3 +294,12 @@ input,button,select, textarea{
 ::-webkit-scrollbar-thumb:hover{
   background: var(--accent);
 }
+
+.vote-button:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.case-button:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
