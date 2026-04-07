@@ -39,6 +39,7 @@
     voteTally={};
     voteCounts = {};
     hasVoted = false;
+    alreadyRevealed = false;
     
     clearUiState();
     try {
@@ -180,12 +181,9 @@
         return;
     }
       revealData = data;
-      const outcome = getPlayerOutcome(data);
-      if (outcome === "win") humanWins +=1;
-      else if (outcome === "lose") humanLosses +=1;
-      gamesPlayed += 1;
+      recordStatsFromReveal(data);
       saveUiState();
-      await showOutcomeAlert(outcome);
+      await showOutcomeAlert(getPlayerOutcome(data));
       status = "Reveal ready";
       alreadyRevealed = true;
       saveUiState();
@@ -223,8 +221,9 @@
         voteCounts = data.vote_counts || {};
         saveUiState();
 
-        if (gamePhase === "reveal" && !revealData && data.reveal_data) {
+        if (gamePhase === "reveal" && !revealData && data.reveal_data){
           revealData = data.reveal_data;
+          recordStatsFromReveal(revealData);
           await showOutcomeAlert(getPlayerOutcome(revealData));
           status = "Reveal ready";
           saveUiState();
@@ -242,6 +241,19 @@
   }
   function getPlayerOutcome(data) {
     return data?.playerOutcome ?? data?.player_outcome ?? data?.revealOutcome ?? data?.reveal_outcome ?? "";
+  }
+
+  function recordStatsFromReveal(data){
+    if (alreadyRevealed) return;
+    const outcome = getPlayerOutcome(data);
+
+    if (outcome === "win"){
+      humanWins += 1;
+    } else if (outcome === "lose"){
+      humanLosses += 1;
+    }
+    gamesPlayed += 1;
+    alreadyRevealed = true;
   }
 
   async function showOutcomeAlert(playerOutcome){
@@ -338,6 +350,7 @@
     voteTally = {};
     voteCounts = {};
     hasVoted = false;
+    alreadyRevealed = false;
   }
 
   function showInstructions(){
