@@ -1,33 +1,6 @@
 <script>
   import Swal from "sweetalert2";
 
-  let darkMode = false;
-  const DARK_MODE_KEY = "humane_darkmode";
-
-  function initDarkMode(){
-    const saved = localStorage.getItem(DARK_MODE_KEY);
-    if (saved !== null){
-      darkMode = JSON.parse(saved);
-    }else{
-      darkMode = window.matchMedia('(prefers-color-scheme:dark)').matches;
-    }
-    applyDarkMode();
-  }
-  function toggleDarkMode(){
-    darkMode = !darkMode;
-    localStorage.setItem(DARK_MODE_KEY, JSON.stringify(darkMode));
-    applyDarkMode();
-  }
-  function applyDarkMode(){
-    const html = document.documentElement;
-    if (darkMode){
-      html.classList.add("dark");
-    } else{
-      html.classList.remove("dark");
-    }
-  }
-  initDarkMode();
-
   let status = "Not checked yet";
   const APP_STATE_KEY = "humane_state";
 
@@ -65,6 +38,8 @@
     revealData = null;
     voteTally={};
     voteCounts = {};
+    hasVoted = false;
+    alreadyRevealed = false;
     
     clearUiState();
     try {
@@ -114,7 +89,7 @@
       status = "enter player id";
       return;
     }
-    if (!messageText) {
+    if (!messageText.trim()) {
       status = "enter a message";
       return;
     }
@@ -126,7 +101,7 @@
         },
         body: JSON.stringify({
           player_id: currentPlayerId,
-          message: messageText,
+          message: messageText.trim(),
         }),
       });
       const data = await res.json();
@@ -138,7 +113,6 @@
       messageText = ""
       status = `${data.name} says: ${data.message}`;
       saveUiState();
-      botTick();
       status = `${data.name} says: ${data.message}`;
     } catch (err) {
       status = "can't send message";
@@ -153,6 +127,10 @@
   }
 
   async function submitVote(){
+    if (hasVoted){
+      status = "You already voted";
+      return;
+    }
     if (!sessionId){
       status = "make a session first";
       return;
@@ -182,6 +160,7 @@
         return;
       }
       status = "vote submitted";
+      hasVoted = true;
       suspectId = "";
       saveUiState();
     } catch (err) {
@@ -201,12 +180,10 @@
         status = data.detail || "reveal Failed";
         return;
     }
-      revealData =  data;
-      if (data.revealOutcome === "win") humanWins += 1;
-      else if(data.playerOutcome === "lose") humanLosses += 1;
-      gamesPlayed +=1;
+      revealData = data;
+      recordStatsFromReveal(data);
       saveUiState();
-      await showOutcomeAlert(data.playerOutcome);
+      await showOutcomeAlert(getPlayerOutcome(data));
       status = "Reveal ready";
       alreadyRevealed = true;
       saveUiState();
@@ -244,9 +221,10 @@
         voteCounts = data.vote_counts || {};
         saveUiState();
 
-        if (gamePhase === "reveal" && !revealData && data.reveal_data) {
+        if (gamePhase === "reveal" && !revealData && data.reveal_data){
           revealData = data.reveal_data;
-          await showOutcomeAlert(revealData.playerOutcome);
+          recordStatsFromReveal(revealData);
+          await showOutcomeAlert(getPlayerOutcome(revealData));
           status = "Reveal ready";
           saveUiState();
         }
@@ -261,6 +239,23 @@
       ([id, count]) => `${getPlayerNameById(id)}:${count}`
   ); return lines.length?`Vote tally:\n${lines.join("\n")}\n\n`:"";
   }
+  function getPlayerOutcome(data) {
+    return data?.playerOutcome ?? data?.player_outcome ?? data?.revealOutcome ?? data?.reveal_outcome ?? "";
+  }
+
+  function recordStatsFromReveal(data){
+    if (alreadyRevealed) return;
+    const outcome = getPlayerOutcome(data);
+
+    if (outcome === "win"){
+      humanWins += 1;
+    } else if (outcome === "lose"){
+      humanLosses += 1;
+    }
+    gamesPlayed += 1;
+    alreadyRevealed = true;
+  }
+
   async function showOutcomeAlert(playerOutcome){
     if (playerOutcome === "win"){
       await Swal.fire({
@@ -305,7 +300,8 @@
       voteCounts,
       humanWins,
       humanLosses,
-      gamesPlayed
+      gamesPlayed,
+      hasVoted
     };
     localStorage.setItem(APP_STATE_KEY, JSON.stringify(data));
   }
@@ -330,6 +326,7 @@
       humanWins = data.humanWins || 0;
       humanLosses = data.humanLosses || 0;
       gamesPlayed = data.gamesPlayed || 0;
+      hasVoted = data.hasVoted || false;
     } catch (err) {
       localStorage.removeItem(APP_STATE_KEY);
     }
@@ -352,6 +349,8 @@
     messageText = "";
     voteTally = {};
     voteCounts = {};
+    hasVoted = false;
+    alreadyRevealed = false;
   }
 
   function showInstructions(){
@@ -400,6 +399,8 @@
   let humanLosses = 0;
   let gamesPlayed = 0;
 
+  let hasVoted = false;
+
   restoreUiState();
   if (sessionId){
     if (botTickTimer) clearInterval(botTickTimer);
@@ -409,131 +410,95 @@
     phaseTimer = setInterval(loadGamesState, 1000);
     loadGamesState();
   }
-</script>
+</script> 
 
-<main class="min-h-screen w-full px-3 py-6 sm:px-6 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-<div class="mx-auto w-full max-w-3xl space-y-4">
-  <h1 class="text-lg mt-2.5 dark:text-gray-100">Humane :)</h1>
-  <br>
+<main class="app-shell min-h-screen px-4 py-6 sm:px-6 flex flex-col items-center">
+  <header>
+    <h1>Humane</h1>
+  </header>
+  <button on:click={showInstructions} class="case-button mb-4">How to play</button>
 
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-    <button type="button" on:click={toggleDarkMode} class="select-none cursor-pointer text-sm px-3 py-1 rounded bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-400 dark:hover:bg-gray-600">
-      {darkMode ? "Light" : "dark"}
-    </button>
-    <br>
-    <br>
-    <p class="text-lg">Phase: {gamePhase}</p>
-    <p class="text-lg">Time left: {countdownSeconds}</p>
-    {#if gamePhase === "voting"}
-      <p>Voting ends in {countdownSeconds} seconds</p>
+  {#if !sessionId}
+  <div class="max-w-md">
+    <span class="case-label">Session setup</span>
+    <div class="case-panel setup-form">
+      <input type="text" placeholder="Enter a name" bind:value={humanName} class="case-input"/>
+      <input type="number" placeholder="duration in seconds" bind:value={gameDurationSeconds} class="case-input"/>
+      <button on:click={createSession} class="case-button case-button-primary">
+        Create Session
+      </button>
+    </div>
+    {#if status}
+    <p class="text-xs mt-2">{status}</p>
     {/if}
-    <br>
-    <button on:click={resetGame} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">New Game</button>
-    <br/>
-    <br/>
-    <input bind:value={humanName} placeholder="enter your name" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
-    <label for="game-duration" class = "block mt-2 text-sm">game duration (15 to 600 secs)</label>
-    <input id="game-duration" type="number" min="15" max="600"step="5" bind:value={gameDurationSeconds} placeholder="60" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
-    <button on:click={createSession} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Make Session</button>
-    <br/>
-    <br/>
   </div>
-  <br>
+  {/if}
 
-<div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <h3 class="font-bold">Chatlog</h3>
-  <br>
-  {#if chatlog.length ===0}
-    <p>No messages Yet!</p>
-    {:else}
-    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
-      <ul>
-        {#each chatlog as m}
-          <li>{m.name}: {m.message}</li>
-        {/each}
-      </ul>
+  {#if sessionId && gamePhase !== "reveal"}
+    <span class="case-label">Game Phase:{gamePhase}</span>
+    {#if gamePhase === "chat"}
+    <div class="chat-container">
+      <div class="chat-panel case-panel">
+        <div class="chat-log">
+          {#each chatlog as msg, i(`${msg.timestamp}-${msg.name}-${i}`)}
+            <div class="chat-message">
+              <strong>{msg.name}:</strong> {msg.message}
+            </div>
+            {/each}
+        </div>
+        <div class="chat-input-row">
+          <input type="text" placeholder="type your message" bind:value={messageText} on:keydown={handleMessageKeydown} class="case-input"/>
+          <button on:click={sendMessage} class="case-button case-button-primary">
+            send
+          </button>
+        </div>
+      </div>
+      <div class="stats-panel">
+        <div class="countdown">
+          {countdownSeconds}
+        </div>
+        <div class="stat-item case-panel">
+          <div class="stat-value">{gamesPlayed}</div>
+          <div class="stat-label">Games played</div>
+        </div>
+        <div class="stat-item case-panel">
+          <div class="stat-value">{humanWins}</div>
+          <div class="stat-label">Wins</div>
+        </div>
+        <div class="stat-item case-panel">
+          <div class="stat-value">{humanLosses}</div>
+          <div class="stat-label">Losses</div>
+        </div>
+        <button on:click={resetGame} class="case-button">Reset Stats</button>
+      </div>
     </div>
   {/if}
-    <br>
-  <input bind:value={messageText} on:keydown={handleMessageKeydown} placeholder="type a message" class="border border-gray-300 dark:border-gray-600 p-2 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"/>
-  <button on:click={sendMessage} disabled={gamePhase !== "chat"} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Send Message</button>
-</div>
-  
-  <br>
-
-
-<div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <h3 class="font-bold">Current Players:</h3>
-  {#if players.length ===0}
-    <p>No players yet!</p>
-    {:else}
-    <ul>
-      {#each players as p}
-        <li>
-         <div role="button" tabindex="0" class="p-3 mb-2 rounded-lg border transition curser-pointer {suspectId===p.player_id ? 'bg-blue-500 text-white dark:bg-blue-700' : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100'}" on:click={()=> {suspectId = p.player_id; saveUiState(); }} on:keydown={(e)=>{if(e.key === 'enter' || e.key === ''){suspectId = p.player_id;saveUiState(); }}}>
-         <div class="flex justify-between items-center">
-          <span class="font-medium">{p.name}</span>
-          <span class="text-xs px-2 py-1 rounded-full {p.is_bot ? 'bg-red-600 text-white' : 'bg-green-600 text-white'}">{p.is_bot ? 'bot' : 'you'} </span>
-         </div>
-         </div>
-        </li>
-      {/each}
-    </ul>
-  {/if}
+  {#if gamePhase === "voting"}
+  <div class="max-w-md">
+    <span class="case-label">Select a suspect</span>
+    <div class="case-panel">
+      <div class="vote-grid">
+        {#each players as p (p.player_id)}
+          <button on:click={()=> (suspectId = p.player_id)} class="vote-button {suspectId === p.player_id ? 'selected' : ''}" disabled={hasVoted}>
+          {p.name}</button>
+          {/each}
+      </div>
+      <button on:click={submitVote} class="case-button case-button-primary" style="width: 100%" disabled={hasVoted || !suspectId}>Vote</button>
+      
+    </div>
   </div>
-  <br>
+  {/if}{/if}
 
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <h3 class="font-bold">Vote</h3>
-  <br>
-  <p>selected Suspect: {suspectId? getPlayerNameById(suspectId) : "none"}</p>
-  <br>
-  <button on:click={submitVote} disabled={gamePhase !== "voting"} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Submit Vote</button>
-  </div>
-  <br>
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <div class="mt-2 text-sm">
-    <h4 class="font-semibold">Live vote counts</h4>
-    {#if Object.keys(voteCounts).length>0}
-    <ul class="list-disc pl-5">
-      {#each Object.entries(voteCounts) as [id, count]}
-        <li>{getPlayerNameById(id)}:{count}</li>
-        {/each}
-    </ul>
-    {:else}
-     <p>nobody votes yet!</p>
-     {/if}
-  </div>
-
-  
-  <button class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded"
-  on:click={()=>{ voteTally = {}; voteCounts = {}; humanWins = humanLosses = gamesPlayed = 0; saveUiState();
-  }}
-  >Reset stats</button>
-  </div>
-
-  <div class="w-full rounded-xl bg-gray-200 dark:bg-gray-800 p-4 shadow-sm">
-  <button on:click={revealResult} class="bg-blue-500 hover:bg-blue-600 dark:bg-blue-700 dark:hover:bg-blue-600 text-white px-4 py-2 rounded">Reveal Result</button>
-  {#if revealData}
-    <p>Human player was: {revealData.human_player
-      ? `${revealData.human_player.name} (id: ${revealData.human_player.player_id})` : "none"}
-    </p>
-    <p>Most voted: {revealData.most_voted_id}</p>
-    <h4>Vote tally</h4>
-    {#if revealData && Object.keys(revealData.vote_tally || {}).length > 0}
-      <ul>
-        {#each Object.entries(revealData.vote_tally) as [playerId, count]}
-         <li>{getPlayerNameById(playerId)}: {count}</li>
-        {/each}
-      </ul>
-      {:else}
-        <p>No votes</p>
-      {/if}
-  {/if}
-  </div>
-</div>
-  </main>
-
-<footer class="w-full py-4 text-center text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
-  &copy; <a href="https://seneth.me" target="_blank" rel="noopener noreferrer">seneth.me</a> | <a href="https://github.com/sen3th/humane" target="_blank" rel="noopener noreferrer">GitHub</a>
-</footer>
+  {#if gamePhase === "reveal"}
+    <div class="reveal-section">
+      <div class="case-label">Results</div>
+      <div class="case-panel">
+        <div class="reveal-title">{getPlayerOutcome(revealData) === "win" ? "You win": "You Lose"}</div>
+        {#if revealData?.vote_tally}
+        <div class="vote-tally">{tallyText()}</div>
+        {/if}
+        <button on:click={resetGame} class="case-button case-button-primary" style="width:100%;">new game</button>
+      </div>
+    </div>
+    {/if}
+</main>
