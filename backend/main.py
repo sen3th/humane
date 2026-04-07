@@ -228,6 +228,7 @@ async def bot_tick(session_id: str):
         latest,
         bot_name=bot["name"],
         bot_style=bot.get("style", "neutral"),
+        topic=session.get("topic", ""),
     )
 
     bot_msg = {
@@ -244,6 +245,8 @@ def create_session(body: CreateSessionRequest):
     session_id = str(uuid4())
     players = []
     duration = max(15, min(body.chat_duration_seconds, 600))
+    topics_pool = normalize_topics(body.topics)
+    selected_topic = random.choice(topics_pool)
 
     human_player = {
         "player_id": str(uuid4()),
@@ -270,14 +273,17 @@ def create_session(body: CreateSessionRequest):
             "messages": [],
             "votes": {},
             "phase":"chat",
-            "chat_ends_at": time.time()+duration
+            "chat_ends_at": time.time()+duration,
+            "topics_pool": topics_pool,
+            "topic": selected_topic
         }
     save_session(session_id)
     return{
             "session_id": session_id,
             "players": players,
             "phase": "chat",
-            "chat_seconds_left": duration
+            "chat_seconds_left": duration,
+            "topic": selected_topic
         }
 
 @app.post("/sessions/{session_id}/join")
