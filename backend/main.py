@@ -159,7 +159,7 @@ def cast_bot_votes(session:dict) -> None:
         if not options:
             continue
         votes[bot_id] = random.choice(options)
-async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral") -> str:
+async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral", topic: str = "") -> str:
     api_key = os.getenv("HACKCLUB_API_KEY")
     if not api_key:
         return "bot is missing api key"
@@ -181,7 +181,7 @@ async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral
     payload = {
         "model": "qwen/qwen3-32b",
         "messages": [
-            {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. {style_hint} Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human."},
+            {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. {style_hint} The current round topic is: {topic}. Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human. Also be a bit dramatic and act as if this is serious and very real."},
             {"role":"user","content": user_text},
         ],
     }
