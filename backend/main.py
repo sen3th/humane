@@ -12,6 +12,23 @@ import sqlite3
 import json
 
 VOTING_DURATION = 10
+TOPICS = [
+    "Best movie of all time",
+    "Favourite human food",
+    "Favourite music band",
+    "What do you think about Pink Floyd?",
+    "Your favourite video game",
+    "best music genre",
+    "Why do you hate the most about humans?"
+]
+
+def normalize_topics(raw_topics: List[str])-> List[str]:
+    cleaned = []
+    for t in (raw_topics or []):
+        s = t.strip()
+        if s:
+            cleaned.append(s)
+    return cleaned if cleaned else TOPICS.copy()
 
 app = FastAPI()
 app.add_middleware(
@@ -78,6 +95,7 @@ class CreateSessionResponse(BaseModel):
     players: list
     phase: str
     chat_seconds_left: int
+    topic: str
 
 
 class JoinRequest(BaseModel):
@@ -139,7 +157,7 @@ def cast_bot_votes(session:dict) -> None:
         if not options:
             continue
         votes[bot_id] = random.choice(options)
-async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral") -> str:
+async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral", topic: str = "") -> str:
     api_key = os.getenv("HACKCLUB_API_KEY")
     if not api_key:
         return "bot is missing api key"
@@ -161,7 +179,7 @@ async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral
     payload = {
         "model": "qwen/qwen3-32b",
         "messages": [
-            {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. {style_hint} Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human."},
+            {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. {style_hint} The current round topic is: {topic}. Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human. Also be a bit dramatic and act as if this is serious and very real."},
             {"role":"user","content": user_text},
         ],
     }
@@ -208,6 +226,7 @@ async def bot_tick(session_id: str):
         latest,
         bot_name=bot["name"],
         bot_style=bot.get("style", "neutral"),
+        topic=session.get("topic", ""),
     )
 
     bot_msg = {
@@ -224,6 +243,7 @@ def create_session(body: CreateSessionRequest):
     session_id = str(uuid4())
     players = []
     duration = max(15, min(body.chat_duration_seconds, 600))
+    selected_topic = random.choice(TOPICS)
 
     human_player = {
         "player_id": str(uuid4()),
@@ -250,14 +270,16 @@ def create_session(body: CreateSessionRequest):
             "messages": [],
             "votes": {},
             "phase":"chat",
-            "chat_ends_at": time.time()+duration
+            "chat_ends_at": time.time()+duration,
+            "topic": selected_topic
         }
     save_session(session_id)
     return{
             "session_id": session_id,
             "players": players,
             "phase": "chat",
-            "chat_seconds_left": duration
+            "chat_seconds_left": duration,
+            "topic": selected_topic
         }
 
 @app.post("/sessions/{session_id}/join")
@@ -352,7 +374,8 @@ def reveal(session_id: str):
         "vote_tally": tally,
         "most_voted_id": most_voted_id,
         "playerOutcome": playerOutcome,
-        "all_messages": data["messages"]
+        "all_messages": data["messages"],
+        "topic": session.get("topic", "")
     }
     
 @app.get("/sessions/{session_id}/state")
