@@ -4,6 +4,10 @@
   let status = "Not checked yet";
   const APP_STATE_KEY = "humane_state";
 
+  const CHAT_HISTORY_KEY = "humane_chat_history";
+  const HISTORY_LIMIT = 50;
+  let sessionHistory = [];
+
   async function checkBackend() {
     try {
       const res = await fetch("https://humane-1-dznm.onrender.com/ping");
@@ -341,6 +345,25 @@
     localStorage.removeItem(APP_STATE_KEY);
   }
 
+  function loadSessionHistory(){
+    const raw = localStorage.getItem(CHAT_HISTORY_KEY);
+    if (!raw) {
+      sessionHistory = [];
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      sessionHistory = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      sessionHistory = [];
+      localStorage.removeItem(CHAT_HISTORY_KEY);
+    }
+    }
+
+  function saveSessionHistory(){
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(sessionHistory));
+  }
+
   function resetGame(){
     clearUiState();
     sessionId ="";
@@ -410,6 +433,7 @@
   let currentTopic = "";
 
   restoreUiState();
+  loadSessionHistory();
   if (sessionId){
     if (botTickTimer) clearInterval(botTickTimer);
     botTickTimer = setInterval(botTick, 3000);
