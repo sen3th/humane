@@ -375,7 +375,7 @@ def reveal(session_id: str):
         "most_voted_id": most_voted_id,
         "playerOutcome": playerOutcome,
         "all_messages": data["messages"],
-        "topic": session.get("topic", "")
+        "topic": data.get("topic", "")
     }
     
 @app.get("/sessions/{session_id}/state")
