@@ -40,6 +40,7 @@
     voteCounts = {};
     hasVoted = false;
     alreadyRevealed = false;
+    currentTopic = "";
     
     clearUiState();
     try {
@@ -49,7 +50,7 @@
         body: JSON.stringify({
           human_name: humanName,
           bot_count: 3,
-          chat_duration_seconds: gameDurationSeconds
+          chat_duration_seconds: gameDurationSeconds,
         }),
       });
       const data = await res.json();
@@ -60,6 +61,7 @@
       }
       sessionId = data.session_id;
       players = data.players || [];
+      currentTopic = data.topic || "";
 
       humanName ="";
 
@@ -215,6 +217,7 @@
       const data = await res.json();
       if (res.ok){
         gamePhase = data.phase;
+        currentTopic = data.topic || currentTopic;
         const parsedSeconds = Number(data.chat_seconds_left ?? data.seconds_left ?? 0);
         countdownSeconds = Number.isFinite(parsedSeconds) ? Math.max(0, Math.floor(parsedSeconds)) : 0;
         voteTally = data.vote_tally || {};
@@ -301,7 +304,8 @@
       humanWins,
       humanLosses,
       gamesPlayed,
-      hasVoted
+      hasVoted,
+      currentTopic
     };
     localStorage.setItem(APP_STATE_KEY, JSON.stringify(data));
   }
@@ -327,6 +331,7 @@
       humanLosses = data.humanLosses || 0;
       gamesPlayed = data.gamesPlayed || 0;
       hasVoted = data.hasVoted || false;
+      currentTopic = data.currentTopic || "";
     } catch (err) {
       localStorage.removeItem(APP_STATE_KEY);
     }
@@ -351,6 +356,7 @@
     voteCounts = {};
     hasVoted = false;
     alreadyRevealed = false;
+    currentTopic = "";
   }
 
   function showInstructions(){
@@ -401,6 +407,8 @@
 
   let hasVoted = false;
 
+  let currentTopic = "";
+
   restoreUiState();
   if (sessionId){
     if (botTickTimer) clearInterval(botTickTimer);
@@ -437,6 +445,11 @@
   {#if sessionId && gamePhase !== "reveal"}
     <span class="case-label">Game Phase:{gamePhase}</span>
     {#if gamePhase === "chat"}
+
+    {#if currentTopic}
+    <span class="case-label">topic: {currentTopic}</span>
+    {/if}
+
     <div class="chat-container">
       <div class="chat-panel case-panel">
         <div class="chat-log">
@@ -497,6 +510,10 @@
         {#if revealData?.vote_tally}
         <div class="vote-tally">{tallyText()}</div>
         {/if}
+        {#if currentTopic}
+        <span class="case-label">Topic: {currentTopic}</span>
+        {/if}
+
         <button on:click={resetGame} class="case-button case-button-primary" style="width:100%;">new game</button>
       </div>
     </div>

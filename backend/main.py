@@ -12,8 +12,7 @@ import sqlite3
 import json
 
 VOTING_DURATION = 10
-
-DEFAULT_TOPICS = [
+TOPICS = [
     "Best movie of all time",
     "Favourite human food",
     "Favourite music band",
@@ -29,7 +28,7 @@ def normalize_topics(raw_topics: List[str])-> List[str]:
         s = t.strip()
         if s:
             cleaned.append(s)
-    return cleaned if cleaned else DEFAULT_TOPICS.copy()
+    return cleaned if cleaned else TOPICS.copy()
 
 app = FastAPI()
 app.add_middleware(
@@ -90,7 +89,6 @@ class CreateSessionRequest(BaseModel):
     human_name: str
     bot_count: int = 3
     chat_duration_seconds: int = 60
-    topics: List[str] = []
 
 class CreateSessionResponse(BaseModel):
     session_id: str
@@ -245,8 +243,7 @@ def create_session(body: CreateSessionRequest):
     session_id = str(uuid4())
     players = []
     duration = max(15, min(body.chat_duration_seconds, 600))
-    topics_pool = normalize_topics(body.topics)
-    selected_topic = random.choice(topics_pool)
+    selected_topic = random.choice(TOPICS)
 
     human_player = {
         "player_id": str(uuid4()),
@@ -274,7 +271,6 @@ def create_session(body: CreateSessionRequest):
             "votes": {},
             "phase":"chat",
             "chat_ends_at": time.time()+duration,
-            "topics_pool": topics_pool,
             "topic": selected_topic
         }
     save_session(session_id)
@@ -378,7 +374,8 @@ def reveal(session_id: str):
         "vote_tally": tally,
         "most_voted_id": most_voted_id,
         "playerOutcome": playerOutcome,
-        "all_messages": data["messages"]
+        "all_messages": data["messages"],
+        "topic": session.get("topic", "")
     }
     
 @app.get("/sessions/{session_id}/state")
