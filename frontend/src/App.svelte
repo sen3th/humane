@@ -250,6 +250,23 @@
     return data?.playerOutcome ?? data?.player_outcome ?? data?.revealOutcome ?? data?.reveal_outcome ?? "";
   }
 
+  function buildSessionHistory(revealPayload){
+    const outcome = getPlayerOutcome(revealPayload);
+    return {
+      id: `${sessionId}-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      sessionId,
+      topic: currentTopic || "",
+      outcome,
+      gamesPlayedAtEnd: gamesPlayed,
+      voteTally: revealPayload?.vote_tally || {},
+      messages: (chatlog || []).map((m) => ({
+        name: m?.name || "unknown",
+        message: m?.message || ""
+      }))
+    };
+  }
+
   function recordStatsFromReveal(data){
     if (alreadyRevealed) return;
     const outcome = getPlayerOutcome(data);
