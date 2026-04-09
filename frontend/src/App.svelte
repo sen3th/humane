@@ -243,6 +243,11 @@
     }
   }
 
+  function clearSessionHistory(){
+    sessionHistory = [];
+    localStorage.removeItem(CHAT_HISTORY_KEY);
+  }
+
   function tallyText(){
     const lines = Object.entries(voteCounts).map(
       ([id, count]) => `${getPlayerNameById(id)}:${count}`
