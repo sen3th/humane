@@ -187,6 +187,7 @@
         return;
     }
       revealData = data;
+      appendSessionHistoryOnce(data);
       recordStatsFromReveal(data);
       saveUiState();
       await showOutcomeAlert(getPlayerOutcome(data));
@@ -230,6 +231,7 @@
 
         if (gamePhase === "reveal" && !revealData && data.reveal_data){
           revealData = data.reveal_data;
+          appendSessionHistoryOnce(revealData);
           recordStatsFromReveal(revealData);
           await showOutcomeAlert(getPlayerOutcome(revealData));
           status = "Reveal ready";
@@ -265,6 +267,16 @@
         message: m?.message || ""
       }))
     };
+  }
+
+  function appendSessionHistoryOnce(revealPayload){
+    if (!sessionId) return;
+    const alreadySaved = sessionHistory.some((h)=> h.sessionId === sessionId);
+    if (alreadySaved) return;
+
+    const entry = buildSessionHistory(revealPayload);
+    sessionHistory = [entry, ...sessionHistory].slice(0, HISTORY_LIMIT);
+    saveSessionHistory();
   }
 
   function recordStatsFromReveal(data){
