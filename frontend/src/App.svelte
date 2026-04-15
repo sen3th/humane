@@ -4,6 +4,10 @@
   let status = "Not checked yet";
   const APP_STATE_KEY = "humane_state";
 
+  const CHAT_HISTORY_KEY = "humane_chat_history";
+  const HISTORY_LIMIT = 50;
+  let sessionHistory = [];
+
   async function checkBackend() {
     try {
       const res = await fetch("https://humane-1-dznm.onrender.com/ping");
@@ -183,6 +187,7 @@
         return;
     }
       revealData = data;
+      appendSessionHistoryOnce(data);
       recordStatsFromReveal(data);
       saveUiState();
       await showOutcomeAlert(getPlayerOutcome(data));
@@ -226,6 +231,7 @@
 
         if (gamePhase === "reveal" && !revealData && data.reveal_data){
           revealData = data.reveal_data;
+          appendSessionHistoryOnce(revealData);
           recordStatsFromReveal(revealData);
           await showOutcomeAlert(getPlayerOutcome(revealData));
           status = "Reveal ready";
@@ -237,6 +243,11 @@
     }
   }
 
+  function clearSessionHistory(){
+    sessionHistory = [];
+    localStorage.removeItem(CHAT_HISTORY_KEY);
+  }
+
   function tallyText(){
     const lines = Object.entries(voteCounts).map(
       ([id, count]) => `${getPlayerNameById(id)}:${count}`
@@ -244,6 +255,33 @@
   }
   function getPlayerOutcome(data) {
     return data?.playerOutcome ?? data?.player_outcome ?? data?.revealOutcome ?? data?.reveal_outcome ?? "";
+  }
+
+  function buildSessionHistory(revealPayload){
+    const outcome = getPlayerOutcome(revealPayload);
+    return {
+      id: `${sessionId}-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      sessionId,
+      topic: currentTopic || "",
+      outcome,
+      gamesPlayedAtEnd: gamesPlayed,
+      voteTally: revealPayload?.vote_tally || {},
+      messages: (chatlog || []).map((m) => ({
+        name: m?.name || "unknown",
+        message: m?.message || ""
+      }))
+    };
+  }
+
+  function appendSessionHistoryOnce(revealPayload){
+    if (!sessionId) return;
+    const alreadySaved = sessionHistory.some((h)=> h.sessionId === sessionId);
+    if (alreadySaved) return;
+
+    const entry = buildSessionHistory(revealPayload);
+    sessionHistory = [entry, ...sessionHistory].slice(0, HISTORY_LIMIT);
+    saveSessionHistory();
   }
 
   function recordStatsFromReveal(data){
@@ -341,6 +379,25 @@
     localStorage.removeItem(APP_STATE_KEY);
   }
 
+  function loadSessionHistory(){
+    const raw = localStorage.getItem(CHAT_HISTORY_KEY);
+    if (!raw) {
+      sessionHistory = [];
+      return;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      sessionHistory = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      sessionHistory = [];
+      localStorage.removeItem(CHAT_HISTORY_KEY);
+    }
+    }
+
+  function saveSessionHistory(){
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(sessionHistory));
+  }
+
   function resetGame(){
     clearUiState();
     sessionId ="";
@@ -410,6 +467,7 @@
   let currentTopic = "";
 
   restoreUiState();
+  loadSessionHistory();
   if (sessionId){
     if (botTickTimer) clearInterval(botTickTimer);
     botTickTimer = setInterval(botTick, 3000);
@@ -438,6 +496,35 @@
     </div>
     {#if status}
     <p class="text-xs mt-2">{status}</p>
+    {/if}
+
+    {#if sessionHistory.length}
+    <div class="case-panel mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="case-label">session history</span>
+        <button class="case-button" on:click={clearSessionHistory}>Clear</button>
+      </div>
+
+      <div class="space-y-3">
+        {#each sessionHistory as h (h.id)}
+        <details class="history-item">
+          <summary class="history-summary">
+            {new Date(h.createdAt).toLocaleString()}, you {h.outcome || "unknown"} . {h.topic || "no top"}
+          </summary>
+          <div class="history-meta">sessionid: {h.sessionId}</div>
+          <div class="history-meta">Messages: {h.messages?.length || 0}</div>
+
+          {#if h.messages?.length}
+          <div class="history-chat">
+            {#each h.messages as m, i(`${h.id}-${i}`)}
+            <div><strong>{m.name}:</strong>{m.message}</div>
+            {/each}
+          </div>
+          {/if}
+        </details>
+        {/each}
+      </div>
+    </div>
     {/if}
   </div>
   {/if}

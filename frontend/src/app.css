@@ -303,3 +303,30 @@ input,button,select, textarea{
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.histore-item{
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.history-summary{
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.85rem;
+}
+
+.history-meta{
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+.history-chat{
+  margin-top: 0.5rem;
+  max-height: 180px;
+  overflow: auto;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  background: #0000;
+}
