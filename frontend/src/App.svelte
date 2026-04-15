@@ -461,6 +461,9 @@
   let humanWins = 0;
   let humanLosses = 0;
   let gamesPlayed = 0;
+  let isBackendStarting = false;
+  let wakeMessage = "";
+  let wakeStarted =0;
 
   let hasVoted = false;
 
