@@ -497,6 +497,35 @@
     {#if status}
     <p class="text-xs mt-2">{status}</p>
     {/if}
+
+    {#if sessionHistory.length}
+    <div class="case-panel mt-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="case-label">session history</span>
+        <button class="case-button" on:click={clearSessionHistory}>Clear</button>
+      </div>
+
+      <div class="space-y-3">
+        {#each sessionHistory as h (h.id)}
+        <details class="history-item">
+          <summary class="history-summary">
+            {new Date(h.createdAt).toLocaleString()} | {h.outcome || "unknown"} | {h.topic || "no top"}
+          </summary>
+          <div class="history-meta">sessionid: {h.sessionId}</div>
+          <div class="history-meta">Messages: {h.messages?.length || 0}</div>
+
+          {#if h.messages?.length}
+          <div class="history-chat">
+            {#each h.messages as m, i(`${h.id}-${i}`)}
+            <div><strong>{m.name}:</strong>{m.message}</div>
+            {/each}
+          </div>
+          {/if}
+        </details>
+        {/each}
+      </div>
+    </div>
+    {/if}
   </div>
   {/if}
 
