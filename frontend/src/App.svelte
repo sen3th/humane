@@ -243,6 +243,31 @@
     }
   }
 
+  async function waitForBackendWake(maxWaitMs = 90000, pollEveryMs =2000){
+    isBackendStarting = true;
+    wakeStarted = Date.now();
+    wakeMessage = "starting the backend rn...";
+
+    while (Date.now() - wakeStarted < maxWaitMs){
+      try{
+        const res=await fetch("https://humane-1-dznm.onrender.com/ping",{
+          method: "GET",
+          cache: "no-store"
+        });
+        if (res.ok){
+          wakeMessage = "backend ready. starting session..";
+          return true;
+        }
+      } catch(_){}
+      const elapsed = Math.floor((Date.now() - wakeStarted)/1000);
+      wakeMessage = `waking backend... ${elapsed}s`;
+      await new Promise((r)=> setTimeout(r, pollEveryMs));
+    }
+    wakeMessage = "time out, try again";
+    return false;
+
+  }
+
   function clearSessionHistory(){
     sessionHistory = [];
     localStorage.removeItem(CHAT_HISTORY_KEY);
