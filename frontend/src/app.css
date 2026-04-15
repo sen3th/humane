@@ -304,7 +304,7 @@ input,button,select, textarea{
   cursor: not-allowed;
 }
 
-.histore-item{
+.history-item{
   border: 1px solid var(--border);
   padding: 0.5rem;
   background: rgba(0, 0, 0, 0.25);
