@@ -509,7 +509,7 @@
         {#each sessionHistory as h (h.id)}
         <details class="history-item">
           <summary class="history-summary">
-            {new Date(h.createdAt).toLocaleString()} | {h.outcome || "unknown"} | {h.topic || "no top"}
+            {new Date(h.createdAt).toLocaleString()}, you {h.outcome || "unknown"} . {h.topic || "no top"}
           </summary>
           <div class="history-meta">sessionid: {h.sessionId}</div>
           <div class="history-meta">Messages: {h.messages?.length || 0}</div>
