@@ -321,3 +321,12 @@ input,button,select, textarea{
   color: var(--muted);
   margin-top: 0.25rem;
 }
+.history-chat{
+  margin-top: 0.5rem;
+  max-height: 180px;
+  overflow: auto;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  background: #0000;
+}
