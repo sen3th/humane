@@ -88,10 +88,11 @@
       
     }catch (err) {
       sessionId = "can't create session";
-      isBackendStarting = false;
+    } finally{
+      isBackendStarting =false;
       wakeMessage = "";
     }
-    
+       
   }
 
   async function sendMessage() {
