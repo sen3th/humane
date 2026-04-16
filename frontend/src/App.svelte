@@ -48,6 +48,12 @@
     
     clearUiState();
     try {
+      const ready = await waitForBackendWake();
+      if (!ready){
+        status = "try again later";
+        isBackendStarting = false;
+        return;
+      }
       const res = await fetch("https://humane-1-dznm.onrender.com/sessions",{
         method : "POST",
         headers: {"Content-Type": "application/json"},
@@ -82,8 +88,11 @@
       
     }catch (err) {
       sessionId = "can't create session";
+    } finally{
+      isBackendStarting =false;
+      wakeMessage = "";
     }
-    
+       
   }
 
   async function sendMessage() {
@@ -241,6 +250,31 @@
     }catch (err) {
       console.error("can't load game state", err);
     }
+  }
+
+  async function waitForBackendWake(maxWaitMs = 90000, pollEveryMs =2000){
+    isBackendStarting = true;
+    wakeStarted = Date.now();
+    wakeMessage = "starting the backend rn...";
+
+    while (Date.now() - wakeStarted < maxWaitMs){
+      try{
+        const res=await fetch("https://humane-1-dznm.onrender.com/ping",{
+          method: "GET",
+          cache: "no-store"
+        });
+        if (res.ok){
+          wakeMessage = "backend ready. starting session..";
+          return true;
+        }
+      } catch(_){}
+      const elapsed = Math.floor((Date.now() - wakeStarted)/1000);
+      wakeMessage = `waking backend... ${elapsed}s`;
+      await new Promise((r)=> setTimeout(r, pollEveryMs));
+    }
+    wakeMessage = "time out, try again";
+    return false;
+
   }
 
   function clearSessionHistory(){
@@ -461,6 +495,9 @@
   let humanWins = 0;
   let humanLosses = 0;
   let gamesPlayed = 0;
+  let isBackendStarting = false;
+  let wakeMessage = "";
+  let wakeStarted =0;
 
   let hasVoted = false;
 
@@ -483,6 +520,18 @@
     <h1>Humane</h1>
   </header>
   <button on:click={showInstructions} class="case-button mb-4">How to play</button>
+
+  {#if isBackendStarting}
+    <div class="wake-background">
+      <div class="wake-card">
+        <div class="wake-spin-thing">
+        </div>
+        <h3>Connecting to backend</h3> 
+          <p>{wakeMessage}</p>
+          <p class="wake-sub">first request can take a bit of time.</p>
+      </div>
+    </div>
+    {/if}
 
   {#if !sessionId}
   <div class="max-w-md">

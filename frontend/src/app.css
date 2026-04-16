@@ -330,3 +330,52 @@ input,button,select, textarea{
   padding: 0.5rem;
   background: #0000;
 }
+.wake-background{
+  position:fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display : flex;
+  align-items: center;
+  justify-content: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.wake-card{
+  width: 100%;
+  max-width: 420px;
+  background: black;
+  color : var(--text);
+  padding: 1rem;
+  text-align:center;
+  box-shadow: 0 0 18px rgba(111, 231, 93, 0.2);
+}
+.wake-card h3{
+  margin: 0.5rem 0;
+  color: var(--accent);
+  letter-spacing: 0.07em;
+}
+
+.wake-card p{
+  margin: 0.35rem 0;
+}
+
+.wake-sub{
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.wake-spin-thing{
+  margin: 0 auto 0.5rem;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 999px;
+  animation: wake-spin 0.8s linear infinite;
+}
+@keyframes wake-spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
