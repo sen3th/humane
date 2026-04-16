@@ -48,6 +48,12 @@
     
     clearUiState();
     try {
+      const ready = await waitForBackendWake();
+      if (!ready){
+        status = "try again later";
+        isBackendStarting = false;
+        return;
+      }
       const res = await fetch("https://humane-1-dznm.onrender.com/sessions",{
         method : "POST",
         headers: {"Content-Type": "application/json"},
@@ -82,6 +88,8 @@
       
     }catch (err) {
       sessionId = "can't create session";
+      isBackendStarting = false;
+      wakeMessage = "";
     }
     
   }
