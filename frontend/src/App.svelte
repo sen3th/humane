@@ -513,6 +513,9 @@
     phaseTimer = setInterval(loadGamesState, 1000);
     loadGamesState();
   }
+
+  import WakeOverlay from "./lib/components/Wakethingy.svelte";
+  import Wakethingy from "./lib/components/Wakethingy.svelte";
 </script> 
 
 <main class="app-shell min-h-screen px-4 py-6 sm:px-6 flex flex-col items-center">
@@ -521,17 +524,7 @@
   </header>
   <button on:click={showInstructions} class="case-button mb-4">How to play</button>
 
-  {#if isBackendStarting}
-    <div class="wake-background">
-      <div class="wake-card">
-        <div class="wake-spin-thing">
-        </div>
-        <h3>Connecting to backend</h3> 
-          <p>{wakeMessage}</p>
-          <p class="wake-sub">first request can take a bit of time.</p>
-      </div>
-    </div>
-    {/if}
+  <Wakethingy {isBackendStarting} {wakeMessage}/>
 
   {#if !sessionId}
   <div class="max-w-md">
