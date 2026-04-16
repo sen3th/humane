@@ -520,6 +520,18 @@
   </header>
   <button on:click={showInstructions} class="case-button mb-4">How to play</button>
 
+  {#if isBackendStarting}
+    <div class="wake-background">
+      <div class="wake-card">
+        <div class="wake-sping-thing">
+          <h3>Connecting to backend</h3> 
+          <p>{wakeMessage}</p>
+          <p class="wake-sub">first request can take a bit of time.</p>
+        </div>
+      </div>
+    </div>
+    {/if}
+
   {#if !sessionId}
   <div class="max-w-md">
     <span class="case-label">Session setup</span>
