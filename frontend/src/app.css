@@ -379,3 +379,8 @@ input,button,select, textarea{
     transform:rotate(360deg);
   }
 }
+
+::selection{
+  background: var(--accent);
+  color: #000;
+}
