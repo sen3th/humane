@@ -513,6 +513,10 @@
     phaseTimer = setInterval(loadGamesState, 1000);
     loadGamesState();
   }
+
+  import Wakethingy from "./lib/components/Wakethingy.svelte";
+  import Sessionsetup from "./lib/components/Sessionsetup.svelte";
+  import Statspanel from "./lib/components/Statspanel.svelte";
 </script> 
 
 <main class="app-shell min-h-screen px-4 py-6 sm:px-6 flex flex-col items-center">
@@ -521,61 +525,10 @@
   </header>
   <button on:click={showInstructions} class="case-button mb-4">How to play</button>
 
-  {#if isBackendStarting}
-    <div class="wake-background">
-      <div class="wake-card">
-        <div class="wake-spin-thing">
-        </div>
-        <h3>Connecting to backend</h3> 
-          <p>{wakeMessage}</p>
-          <p class="wake-sub">first request can take a bit of time.</p>
-      </div>
-    </div>
-    {/if}
+  <Wakethingy {isBackendStarting} {wakeMessage}/>
 
   {#if !sessionId}
-  <div class="max-w-md">
-    <span class="case-label">Session setup</span>
-    <div class="case-panel setup-form">
-      <input type="text" placeholder="Enter a name" bind:value={humanName} class="case-input"/>
-      <input type="number" placeholder="duration in seconds" bind:value={gameDurationSeconds} class="case-input"/>
-      <button on:click={createSession} class="case-button case-button-primary">
-        Create Session
-      </button>
-    </div>
-    {#if status}
-    <p class="text-xs mt-2">{status}</p>
-    {/if}
-
-    {#if sessionHistory.length}
-    <div class="case-panel mt-4">
-      <div class="flex items-center justify-between mb-2">
-        <span class="case-label">session history</span>
-        <button class="case-button" on:click={clearSessionHistory}>Clear</button>
-      </div>
-
-      <div class="space-y-3">
-        {#each sessionHistory as h (h.id)}
-        <details class="history-item">
-          <summary class="history-summary">
-            {new Date(h.createdAt).toLocaleString()}, you {h.outcome || "unknown"} . {h.topic || "no top"}
-          </summary>
-          <div class="history-meta">sessionid: {h.sessionId}</div>
-          <div class="history-meta">Messages: {h.messages?.length || 0}</div>
-
-          {#if h.messages?.length}
-          <div class="history-chat">
-            {#each h.messages as m, i(`${h.id}-${i}`)}
-            <div><strong>{m.name}:</strong>{m.message}</div>
-            {/each}
-          </div>
-          {/if}
-        </details>
-        {/each}
-      </div>
-    </div>
-    {/if}
-  </div>
+  <Sessionsetup bind:humanName bind:gameDurationSeconds {status} {createSession} {sessionHistory} {clearSessionHistory}/>
   {/if}
 
   {#if sessionId && gamePhase !== "reveal"}
@@ -602,24 +555,9 @@
           </button>
         </div>
       </div>
-      <div class="stats-panel">
-        <div class="countdown">
-          {countdownSeconds}
-        </div>
-        <div class="stat-item case-panel">
-          <div class="stat-value">{gamesPlayed}</div>
-          <div class="stat-label">Games played</div>
-        </div>
-        <div class="stat-item case-panel">
-          <div class="stat-value">{humanWins}</div>
-          <div class="stat-label">Wins</div>
-        </div>
-        <div class="stat-item case-panel">
-          <div class="stat-value">{humanLosses}</div>
-          <div class="stat-label">Losses</div>
-        </div>
-        <button on:click={resetGame} class="case-button">Reset Stats</button>
-      </div>
+      
+      <Statspanel {gamesPlayed} {humanWins} {humanLosses} {countdownSeconds} {resetGame}/>
+
     </div>
   {/if}
   {#if gamePhase === "voting"}
