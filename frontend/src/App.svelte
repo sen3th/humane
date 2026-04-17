@@ -466,6 +466,23 @@
     })
   }
 
+  function exportChat(){
+    if (chatlog. length === 0){
+      status = "no messages haha";
+      return;
+    }
+
+    let textContent = "";
+    textContent += `game: ${currentTopic}\n`;
+    textContent += `players: ${players.map(p=> p.name).join(", ")}\n`;
+    textContent += `---\n\n`;
+    chatlog.forEach(msg =>{
+      textContent += `$(msg.name): ${msg.message}\n`;
+    })
+
+    downloadFile(textContent, `chat_$(sessionId).txt`, 'text/plain');
+  }
+
   showInstructions();
 
   let sessionId ="";
