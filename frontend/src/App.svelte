@@ -516,6 +516,7 @@
 
   import Wakethingy from "./lib/components/Wakethingy.svelte";
   import Sessionsetup from "./lib/components/Sessionsetup.svelte";
+  import Statspanel from "./lib/components/Statspanel.svelte";
 </script> 
 
 <main class="app-shell min-h-screen px-4 py-6 sm:px-6 flex flex-col items-center">
@@ -529,7 +530,7 @@
   {#if !sessionId}
   <Sessionsetup bind:humanName bind:gameDurationSeconds {status} {createSession} {sessionHistory} {clearSessionHistory}/>
   {/if}
-  
+
   {#if sessionId && gamePhase !== "reveal"}
     <span class="case-label">Game Phase:{gamePhase}</span>
     {#if gamePhase === "chat"}
@@ -554,24 +555,9 @@
           </button>
         </div>
       </div>
-      <div class="stats-panel">
-        <div class="countdown">
-          {countdownSeconds}
-        </div>
-        <div class="stat-item case-panel">
-          <div class="stat-value">{gamesPlayed}</div>
-          <div class="stat-label">Games played</div>
-        </div>
-        <div class="stat-item case-panel">
-          <div class="stat-value">{humanWins}</div>
-          <div class="stat-label">Wins</div>
-        </div>
-        <div class="stat-item case-panel">
-          <div class="stat-value">{humanLosses}</div>
-          <div class="stat-label">Losses</div>
-        </div>
-        <button on:click={resetGame} class="case-button">Reset Stats</button>
-      </div>
+      
+      <Statspanel {gamesPlayed} {humanWins} {humanLosses} {countdownSeconds} {resetGame}/>
+
     </div>
   {/if}
   {#if gamePhase === "voting"}
