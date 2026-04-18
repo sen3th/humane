@@ -620,7 +620,7 @@
         {#if currentTopic}
         <span class="case-label">Topic: {currentTopic}</span>
         {/if}
-
+        <button on:click={exportChat} class="case-button-primary" style="width:100%; margin-bottom:8px;">download this game</button>
         <button on:click={resetGame} class="case-button case-button-primary" style="width:100%;">new game</button>
       </div>
     </div>
