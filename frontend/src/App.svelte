@@ -584,6 +584,9 @@
             send
           </button>
         </div>
+        <button on:click={exportChat} class="case-button" style="margin-top:8px;">
+          export chat
+        </button>
       </div>
       
       <Statspanel {gamesPlayed} {humanWins} {humanLosses} {countdownSeconds} {resetGame}/>
