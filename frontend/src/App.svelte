@@ -477,10 +477,10 @@
     textContent += `players: ${players.map(p=> p.name).join(", ")}\n`;
     textContent += `---\n\n`;
     chatlog.forEach(msg =>{
-      textContent += `$(msg.name): ${msg.message}\n`;
+      textContent += `${msg.name}: ${msg.message}\n`;
     })
 
-    downloadFile(textContent, `chat_$(sessionId).txt`, 'text/plain');
+    downloadFile(textContent, `chat_${sessionId}.txt`, 'text/plain');
   }
 
   function downloadFile(content, filename, mimeType){
@@ -493,7 +493,7 @@
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    status = `chat exported as $(filename)`;
+    status = `chat exported as ${filename}`;
   }
 
   showInstructions();
