@@ -466,6 +466,36 @@
     })
   }
 
+  function exportChat(){
+    if (chatlog. length === 0){
+      status = "no messages haha";
+      return;
+    }
+
+    let textContent = "";
+    textContent += `game: ${currentTopic}\n`;
+    textContent += `players: ${players.map(p=> p.name).join(", ")}\n`;
+    textContent += `---\n\n`;
+    chatlog.forEach(msg =>{
+      textContent += `${msg.name}: ${msg.message}\n`;
+    })
+
+    downloadFile(textContent, `chat_${sessionId}.txt`, 'text/plain');
+  }
+
+  function downloadFile(content, filename, mimeType){
+    const blob = new Blob([content], {type:mimeType});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    status = `chat exported as ${filename}`;
+  }
+
   showInstructions();
 
   let sessionId ="";
@@ -554,6 +584,9 @@
             send
           </button>
         </div>
+        <button on:click={exportChat} class="case-button" style="margin-top:8px;">
+          export chat
+        </button>
       </div>
       
       <Statspanel {gamesPlayed} {humanWins} {humanLosses} {countdownSeconds} {resetGame}/>
@@ -587,7 +620,7 @@
         {#if currentTopic}
         <span class="case-label">Topic: {currentTopic}</span>
         {/if}
-
+        <button on:click={exportChat} class="case-button-primary" style="width:100%; margin-bottom:8px;">download this game</button>
         <button on:click={resetGame} class="case-button case-button-primary" style="width:100%;">new game</button>
       </div>
     </div>
