@@ -455,10 +455,10 @@
       title: "How to play",
       html:`
       <ul class="text-left list-disc pl-5">
-        <li>Enter your name and create a session</li>
+        <li>Enter your name, enter game duration in seconds and create a session</li>
         <li>Chat with bots till the timer runs out (try to blend in!)</li>
         <li>After voting phase starts, sabotage bots by voting for them (or yourself if you're crazy) </li>
-        <li>After voting ends, click reveal to see if you fooled the bots or not</li>
+        <li>After voting ends see if you fooled the bots or not</li>
         <li>Make a new session to play again :)</li>
         <li>If this is the first time in a while you might need to wait up to a minute for the backend to wake up from sleep (render.com free tier thing)</li>
       </ul>
