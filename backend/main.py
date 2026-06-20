@@ -177,7 +177,7 @@ async def get_bot_reply(user_text: str, bot_name: str, bot_style: str = "neutral
     style_hint = style_hints.get(bot_style, "Speak neutral and concise.")
 
     payload = {
-        "model": "meta-llama/llama-3.3-70b-instruct:free",
+        "model": "openrouter/free",
         "messages": [
             {"role": "system", "content": f"You are {bot_name}, a {bot_style} bot in a social deduction game chat. {style_hint} The current round topic is: {topic}. Your only goal is to help bot teammates identify the one human player. Stay inside this game only. Do not mention parasites, sci-fi lore, special roles, or outside stories. Reply in plain text with exactly one sentence, maximum 10 words. Keep it casual, suspicious, and focused on who seems human. Also be a bit dramatic and act as if this is serious and very real."},
             {"role":"user","content": user_text},
